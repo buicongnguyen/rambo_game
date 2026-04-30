@@ -1,8 +1,10 @@
 import Phaser from 'phaser';
 import './style.css';
 import { GameDirector } from './game/core/GameDirector';
+import { VirtualGamepad } from './game/core/VirtualGamepad';
 import { BattleScene } from './game/scenes/BattleScene';
 import { InterfaceController } from './game/ui/InterfaceController';
+import { TouchControlsOverlay } from './game/ui/TouchControls';
 
 const app = document.querySelector<HTMLDivElement>('#app');
 if (!app) {
@@ -26,6 +28,7 @@ app.innerHTML = `
         <div id="game-root" class="game-root"></div>
         <div id="hud-root" class="hud-root"></div>
         <div id="overlay-root" class="overlay-root"></div>
+        <div id="touch-controls-root" class="touch-controls-root" hidden></div>
       </div>
     </main>
     <section id="intel-root" class="intel-grid"></section>
@@ -35,13 +38,16 @@ app.innerHTML = `
 const hudRoot = document.querySelector<HTMLElement>('#hud-root');
 const overlayRoot = document.querySelector<HTMLElement>('#overlay-root');
 const intelRoot = document.querySelector<HTMLElement>('#intel-root');
+const touchControlsRoot = document.querySelector<HTMLElement>('#touch-controls-root');
 
-if (!hudRoot || !overlayRoot || !intelRoot) {
+if (!hudRoot || !overlayRoot || !intelRoot || !touchControlsRoot) {
   throw new Error('Interface roots are missing.');
 }
 
 const director = new GameDirector();
+const virtualGamepad = new VirtualGamepad();
 const ui = new InterfaceController({ hudRoot, overlayRoot, intelRoot }, director);
+new TouchControlsOverlay(touchControlsRoot, director, virtualGamepad);
 
 new Phaser.Game({
   type: Phaser.AUTO,
@@ -66,5 +72,5 @@ new Phaser.Game({
     pixelArt: false,
     antialias: true,
   },
-  scene: [new BattleScene(director, (snapshot) => ui.setHud(snapshot))],
+  scene: [new BattleScene(director, (snapshot) => ui.setHud(snapshot), virtualGamepad)],
 });

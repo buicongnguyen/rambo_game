@@ -141,6 +141,7 @@ export class InterfaceController {
         <ul>
           <li><strong>${CONTROL_SCHEMES[1].callsign}</strong> ${describeControls(CONTROL_SCHEMES[1])}</li>
           <li><strong>${CONTROL_SCHEMES[2].callsign}</strong> ${describeControls(CONTROL_SCHEMES[2])}</li>
+          <li><strong>Mobile</strong> Drag the left stick to move, then use the right buttons to fire, jump, kneel, and trigger barrage.</li>
         </ul>
       </article>
       <article class="intel-card">

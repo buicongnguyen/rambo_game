@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { CONTROL_SCHEMES } from '../core/ControlScheme';
 import { GameDirector } from '../core/GameDirector';
+import { VirtualGamepad, type GameAction } from '../core/VirtualGamepad';
 import {
   ALL_SPRITE_SHEETS,
   animationKey,
@@ -42,6 +43,7 @@ interface PlayerUnit {
   contactReadyAt: number;
   aim: Phaser.Math.Vector2;
   jumpVector: Phaser.Math.Vector2;
+  virtualControlId?: 1 | 2;
   controls: {
     up: Phaser.Input.Keyboard.Key;
     down: Phaser.Input.Keyboard.Key;
@@ -96,6 +98,7 @@ interface EncounterState {
 export class BattleScene extends Phaser.Scene {
   private readonly director: GameDirector;
   private readonly pushHud: (snapshot: HudSnapshot) => void;
+  private readonly virtualGamepad: VirtualGamepad;
   private unsubscribe?: () => void;
   private loadedToken = '';
   private stage?: StageConfig;
@@ -119,10 +122,15 @@ export class BattleScene extends Phaser.Scene {
   private bannerText?: Phaser.GameObjects.Text;
   private reticleText?: Phaser.GameObjects.Text;
 
-  constructor(director: GameDirector, pushHud: (snapshot: HudSnapshot) => void) {
+  constructor(
+    director: GameDirector,
+    pushHud: (snapshot: HudSnapshot) => void,
+    virtualGamepad: VirtualGamepad,
+  ) {
     super('battle-scene');
     this.director = director;
     this.pushHud = pushHud;
+    this.virtualGamepad = virtualGamepad;
   }
 
   preload(): void {
@@ -220,6 +228,7 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private setupStandby(snapshot: SessionSnapshot): void {
+    this.virtualGamepad.resetAll();
     const previewStage = this.getPreviewStage(snapshot);
     this.cameras.main.setBackgroundColor(previewStage.palette.sky);
     this.drawBackdrop(previewStage, true);
@@ -253,6 +262,7 @@ export class BattleScene extends Phaser.Scene {
 
   private setupStage(snapshot: SessionSnapshot): void {
     this.playing = false;
+    this.virtualGamepad.resetAll();
     this.stage = snapshot.currentStage;
     this.players = [];
     this.enemies = [];
@@ -387,6 +397,7 @@ export class BattleScene extends Phaser.Scene {
         contactReadyAt: 0,
         aim: new Phaser.Math.Vector2(1, 0),
         jumpVector: new Phaser.Math.Vector2(1, 0),
+        virtualControlId: playerId === 1 ? 1 : undefined,
         controls: {
           up: this.input.keyboard!.addKey(scheme.keys.up),
           down: this.input.keyboard!.addKey(scheme.keys.down),
@@ -467,12 +478,9 @@ export class BattleScene extends Phaser.Scene {
         continue;
       }
 
-      const movement = new Phaser.Math.Vector2(
-        (player.controls.left.isDown ? -1 : 0) + (player.controls.right.isDown ? 1 : 0),
-        (player.controls.up.isDown ? -1 : 0) + (player.controls.down.isDown ? 1 : 0),
-      );
-      const wantsFire = player.controls.fire.isDown;
-      const wantsCrouch = player.controls.crouch.isDown;
+      const movement = this.getMovementInput(player);
+      const wantsFire = this.isActionDown(player, 'fire');
+      const wantsCrouch = this.isActionDown(player, 'crouch');
       const isJumping = time < player.jumpUntil;
 
       if (movement.lengthSq() > 0) {
@@ -482,7 +490,7 @@ export class BattleScene extends Phaser.Scene {
         }
       }
 
-      if (Phaser.Input.Keyboard.JustDown(player.controls.jump) && time >= player.jumpReadyAt) {
+      if (this.wasActionPressed(player, 'jump') && time >= player.jumpReadyAt) {
         const jumpVector = movement.lengthSq() > 0 ? movement.clone() : player.aim.clone();
         if (jumpVector.lengthSq() === 0) {
           jumpVector.set(1, 0);
@@ -529,13 +537,42 @@ export class BattleScene extends Phaser.Scene {
         this.firePlayerWeapon(player, time);
       }
 
-      if (Phaser.Input.Keyboard.JustDown(player.controls.special) && time >= player.nextSpecialAt && player.bombs > 0) {
+      if (this.wasActionPressed(player, 'special') && time >= player.nextSpecialAt && player.bombs > 0) {
         this.activateBarrage(player, time);
       }
 
       player.sprite.setRotation(player.aim.angle());
       this.playLoop(player.sprite, animation);
     }
+  }
+
+  private getMovementInput(player: PlayerUnit): Phaser.Math.Vector2 {
+    const axis = player.virtualControlId ? this.virtualGamepad.getAxis(player.virtualControlId) : { x: 0, y: 0 };
+    const keyboardX = (player.controls.left.isDown ? -1 : 0) + (player.controls.right.isDown ? 1 : 0);
+    const keyboardY = (player.controls.up.isDown ? -1 : 0) + (player.controls.down.isDown ? 1 : 0);
+    const movement = new Phaser.Math.Vector2(
+      Phaser.Math.Clamp(axis.x + keyboardX, -1, 1),
+      Phaser.Math.Clamp(axis.y + keyboardY, -1, 1),
+    );
+
+    if (movement.lengthSq() > 1) {
+      movement.normalize();
+    }
+
+    return movement;
+  }
+
+  private isActionDown(player: PlayerUnit, action: Extract<GameAction, 'crouch' | 'fire'>): boolean {
+    const touchActive = player.virtualControlId ? this.virtualGamepad.isDown(player.virtualControlId, action) : false;
+    return player.controls[action].isDown || touchActive;
+  }
+
+  private wasActionPressed(player: PlayerUnit, action: Extract<GameAction, 'jump' | 'special'>): boolean {
+    const keyPressed = Phaser.Input.Keyboard.JustDown(player.controls[action]);
+    const touchPressed = player.virtualControlId
+      ? this.virtualGamepad.consumeJustPressed(player.virtualControlId, action)
+      : false;
+    return keyPressed || touchPressed;
   }
 
   private updateEnemies(time: number): void {
