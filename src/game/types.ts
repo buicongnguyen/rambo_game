@@ -2,7 +2,7 @@ export type SessionPhase = 'menu' | 'playing' | 'intermission' | 'gameover' | 'v
 export type EnemyKind = 'rifleman' | 'rocketeer' | 'turret';
 export type BossKind = 'gunship' | 'barge' | 'tank';
 export type StageThemeId = 'emerald' | 'river' | 'blacksite';
-export type WeaponKind = 'rifle' | 'shotgun' | 'flame' | 'launcher';
+export type WeaponKind = 'rifle' | 'shotgun' | 'flame' | 'launcher' | 'sniper' | 'explosiveArrow';
 
 export interface StagePalette {
   sky: number;
@@ -74,6 +74,11 @@ export interface PlayerStatus {
   accent: string;
   weapon?: string;
   weapons?: string[];
+  ammo?: Array<{
+    label: string;
+    ammo: string;
+    active: boolean;
+  }>;
 }
 
 export interface BossStatus {

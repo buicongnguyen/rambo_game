@@ -42,11 +42,11 @@ export class TouchControlsOverlay {
               <strong>Gun</strong>
             </button>
             <button type="button" class="touch-button touch-button-special" data-action="special">
-              <strong>Barrage</strong>
+              <strong>Bomb</strong>
             </button>
           </div>
         </div>
-        <div class="touch-rotate-hint">Landscape plays best on mobile.</div>
+        <div class="touch-rotate-hint">Portrait and landscape are supported.</div>
       </div>
     `;
 

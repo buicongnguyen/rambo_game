@@ -51,5 +51,5 @@ export const CONTROL_SCHEMES: Record<1 | 2, ControlScheme> = {
 };
 
 export function describeControls(scheme: ControlScheme): string {
-  return `${scheme.keys.up}/${scheme.keys.left}/${scheme.keys.down}/${scheme.keys.right} move, ${scheme.keys.crouch} change gun, ${scheme.keys.jump} jump, ${scheme.keys.fire} fire, ${scheme.keys.special} barrage`;
+  return `${scheme.keys.up}/${scheme.keys.left}/${scheme.keys.down}/${scheme.keys.right} move, ${scheme.keys.crouch} change gun, ${scheme.keys.jump} jump, ${scheme.keys.fire} fire, ${scheme.keys.special} air strike`;
 }

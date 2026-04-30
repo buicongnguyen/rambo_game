@@ -77,7 +77,14 @@ export class InterfaceController {
               </div>
               <div class="player-meta">
                 <span>HP ${Math.max(0, Math.ceil(player.health))}/${player.maxHealth}</span>
-                <span>${player.weapon ?? 'Rifle'} / ${player.weapons?.length ?? 1} guns</span>
+                <span>Air Strike x${player.bombs}</span>
+              </div>
+              <div class="ammo-strip" aria-label="${player.label} ammo">
+                ${(player.ammo ?? []).map((weapon) => `
+                  <span class="ammo-pill ${weapon.active ? 'is-active' : ''}">
+                    ${weapon.label} ${weapon.ammo}
+                  </span>
+                `).join('')}
               </div>
             </article>
           `).join('')}
@@ -142,7 +149,8 @@ export class InterfaceController {
         <ul>
           <li><strong>${CONTROL_SCHEMES[1].callsign}</strong> ${describeControls(CONTROL_SCHEMES[1])}</li>
           <li><strong>${CONTROL_SCHEMES[2].callsign}</strong> ${describeControls(CONTROL_SCHEMES[2])}</li>
-          <li><strong>Mobile</strong> Drag the left stick to move, then use the right buttons to fire, jump, change gun, and trigger barrage.</li>
+          <li><strong>Mobile</strong> Drag the left stick to move, then use the right buttons to fire, jump, change gun, and call an air-strike bomb.</li>
+          <li><strong>Air Strike</strong> The old Barrage button is the emergency bomb: it damages enemies in a wide circle and restocks after clearing zones.</li>
         </ul>
       </article>
       <article class="intel-card">

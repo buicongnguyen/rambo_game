@@ -22,26 +22,36 @@ import type {
 interface WeaponSpec {
   kind: WeaponKind;
   label: string;
+  shortLabel: string;
   tint: number;
   fireRate: number;
   bulletSpeed: number;
   damage: number;
   maxDistance: number;
+  maxAmmo: number;
+  pickupAmmo: number;
+  ammoCost: number;
   spread: number;
   pellets: number;
   scaleX: number;
   scaleY: number;
+  splashRadius?: number;
+  splashDamage?: number;
 }
 
 const WEAPONS: Record<WeaponKind, WeaponSpec> = {
   rifle: {
     kind: 'rifle',
     label: 'Rifle',
+    shortLabel: 'RFL',
     tint: 0xefb648,
     fireRate: 190,
     bulletSpeed: 390,
     damage: 32,
     maxDistance: 500,
+    maxAmmo: -1,
+    pickupAmmo: 0,
+    ammoCost: 0,
     spread: 0,
     pellets: 1,
     scaleX: 1.8,
@@ -50,11 +60,15 @@ const WEAPONS: Record<WeaponKind, WeaponSpec> = {
   shotgun: {
     kind: 'shotgun',
     label: 'Shotgun',
+    shortLabel: 'SHG',
     tint: 0xffd08a,
     fireRate: 500,
     bulletSpeed: 430,
     damage: 44,
     maxDistance: 700,
+    maxAmmo: 36,
+    pickupAmmo: 18,
+    ammoCost: 1,
     spread: 0.24,
     pellets: 5,
     scaleX: 1.65,
@@ -63,11 +77,15 @@ const WEAPONS: Record<WeaponKind, WeaponSpec> = {
   flame: {
     kind: 'flame',
     label: 'Fire Gun',
+    shortLabel: 'FIR',
     tint: 0xff6b2d,
     fireRate: 95,
     bulletSpeed: 340,
     damage: 24,
     maxDistance: 520,
+    maxAmmo: 90,
+    pickupAmmo: 45,
+    ammoCost: 1,
     spread: 0.12,
     pellets: 4,
     scaleX: 1.95,
@@ -76,15 +94,57 @@ const WEAPONS: Record<WeaponKind, WeaponSpec> = {
   launcher: {
     kind: 'launcher',
     label: 'Launcher',
+    shortLabel: 'LCH',
     tint: 0x9cf5f3,
     fireRate: 720,
     bulletSpeed: 360,
     damage: 135,
     maxDistance: 980,
+    maxAmmo: 8,
+    pickupAmmo: 4,
+    ammoCost: 1,
     spread: 0,
     pellets: 1,
     scaleX: 2.35,
     scaleY: 1.65,
+    splashRadius: 118,
+    splashDamage: 70,
+  },
+  sniper: {
+    kind: 'sniper',
+    label: 'Sniper',
+    shortLabel: 'SNP',
+    tint: 0xdaf7ff,
+    fireRate: 760,
+    bulletSpeed: 620,
+    damage: 150,
+    maxDistance: 1180,
+    maxAmmo: 18,
+    pickupAmmo: 9,
+    ammoCost: 1,
+    spread: 0,
+    pellets: 1,
+    scaleX: 2.8,
+    scaleY: 1.05,
+  },
+  explosiveArrow: {
+    kind: 'explosiveArrow',
+    label: 'Blast Arrow',
+    shortLabel: 'ARR',
+    tint: 0xb6ff70,
+    fireRate: 680,
+    bulletSpeed: 330,
+    damage: 80,
+    maxDistance: 900,
+    maxAmmo: 12,
+    pickupAmmo: 6,
+    ammoCost: 1,
+    spread: 0,
+    pellets: 1,
+    scaleX: 2.2,
+    scaleY: 1.35,
+    splashRadius: 170,
+    splashDamage: 105,
   },
 };
 
@@ -113,6 +173,7 @@ interface PlayerUnit {
   contactReadyAt: number;
   weaponIndex: number;
   weapons: WeaponKind[];
+  ammo: Record<WeaponKind, number>;
   aim: Phaser.Math.Vector2;
   jumpVector: Phaser.Math.Vector2;
   virtualControlId?: 1 | 2;
@@ -201,6 +262,7 @@ export class BattleScene extends Phaser.Scene {
   private cameraTarget?: Phaser.GameObjects.Zone;
   private bannerText?: Phaser.GameObjects.Text;
   private reticleText?: Phaser.GameObjects.Text;
+  private objectivePanel?: Phaser.GameObjects.Image;
 
   constructor(
     director: GameDirector,
@@ -292,6 +354,16 @@ export class BattleScene extends Phaser.Scene {
       g.fillStyle(0xffffff, 1);
       g.fillCircle(10, 10, 10);
       g.generateTexture('blast-circle', 20, 20);
+      g.clear();
+      g.fillStyle(0x071109, 0.88);
+      g.fillRoundedRect(0, 0, 720, 132, 18);
+      g.lineStyle(3, 0xefb648, 0.42);
+      g.strokeRoundedRect(4, 4, 712, 124, 16);
+      g.fillStyle(0xefb648, 0.12);
+      for (let x = -80; x < 760; x += 46) {
+        g.fillRect(x, 0, 14, 132);
+      }
+      g.generateTexture('objective-plaque', 720, 132);
       g.destroy();
     }
   }
@@ -370,6 +442,7 @@ export class BattleScene extends Phaser.Scene {
     this.children.removeAll();
     this.bannerText = undefined;
     this.reticleText = undefined;
+    this.objectivePanel = undefined;
     this.physics.world.colliders.destroy();
     this.physics.resume();
     this.physics.world.setBounds(0, 0, this.stage.worldWidth, this.stage.worldHeight);
@@ -458,22 +531,35 @@ export class BattleScene extends Phaser.Scene {
     for (const encounter of stage.encounters) {
       encounter.enemies.forEach((spawn, index) => {
         const doorSide = index % 2 === 0 ? -1 : 1;
-        const houseX = spawn.x + doorSide * Phaser.Math.Between(42, 74);
-        const houseY = Phaser.Math.Clamp(spawn.y + Phaser.Math.Between(-28, 28), 90, stage.worldHeight - 90);
         const concrete = spawn.kind === 'turret' || index % 4 === 3;
+        const width = concrete ? 82 : 72;
+        const height = concrete ? 58 : 52;
+        const housePosition = this.findOpenCoverSpot(
+          spawn.x + doorSide * Phaser.Math.Between(42, 74),
+          Phaser.Math.Clamp(spawn.y + Phaser.Math.Between(-28, 28), 90, stage.worldHeight - 90),
+          width,
+          height,
+          stage,
+          12,
+        );
+
+        if (!housePosition) {
+          return;
+        }
+
         const house = this.createBlocker(
-          houseX,
-          houseY,
-          concrete ? 82 : 72,
-          concrete ? 58 : 52,
+          housePosition.x,
+          housePosition.y,
+          width,
+          height,
           concrete ? 0x777f86 : 0x5c4327,
           concrete ? 0.96 : 0.9,
           concrete ? 'BUNKER' : 'HUT',
         );
-        const doorX = houseX - doorSide * ((concrete ? 82 : 72) * 0.52);
+        const doorX = housePosition.x - doorSide * (width * 0.52);
         this.spawnDoors.set(spawn.id, {
           x: doorX,
-          y: houseY,
+          y: housePosition.y,
           house,
         });
       });
@@ -489,14 +575,62 @@ export class BattleScene extends Phaser.Scene {
       const y = index % 2 === 0
         ? 120 + (index % 5) * 118
         : stage.worldHeight - 120 - (index % 5) * 110;
-      this.createTreeCover(x, Phaser.Math.Clamp(y, 80, stage.worldHeight - 80), stage);
+      const treePosition = this.findOpenCoverSpot(x, Phaser.Math.Clamp(y, 80, stage.worldHeight - 80), 62, 72, stage, 16);
+      if (treePosition) {
+        this.createTreeCover(treePosition.x, treePosition.y, stage);
+      }
     }
 
     for (let index = 0; index < 4; index += 1) {
       const x = 620 + index * 460;
       const y = index % 2 === 0 ? stage.worldHeight * 0.32 : stage.worldHeight * 0.72;
-      this.createBlocker(x, y, 96, 66, 0x6f777b, 0.98, 'CONCRETE');
+      const concretePosition = this.findOpenCoverSpot(x, y, 96, 66, stage, 18);
+      if (concretePosition) {
+        this.createBlocker(concretePosition.x, concretePosition.y, 96, 66, 0x6f777b, 0.98, 'CONCRETE');
+      }
     }
+  }
+
+  private findOpenCoverSpot(
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    stage: StageConfig,
+    padding: number,
+  ): { x: number; y: number } | undefined {
+    const offsets = [
+      [0, 0],
+      [0, -92],
+      [0, 92],
+      [-104, 0],
+      [104, 0],
+      [-86, -72],
+      [86, 72],
+      [86, -72],
+      [-86, 72],
+    ] as const;
+
+    for (const [offsetX, offsetY] of offsets) {
+      const candidateX = Phaser.Math.Clamp(x + offsetX, width * 0.5 + 24, stage.worldWidth - width * 0.5 - 24);
+      const candidateY = Phaser.Math.Clamp(y + offsetY, height * 0.5 + 40, stage.worldHeight - height * 0.5 - 40);
+      if (this.canPlaceRect(candidateX, candidateY, width, height, padding)) {
+        return { x: candidateX, y: candidateY };
+      }
+    }
+
+    return undefined;
+  }
+
+  private canPlaceRect(x: number, y: number, width: number, height: number, padding = 12): boolean {
+    const candidate = new Phaser.Geom.Rectangle(
+      x - width * 0.5 - padding,
+      y - height * 0.5 - padding,
+      width + padding * 2,
+      height + padding * 2,
+    );
+
+    return this.obstacleBodies.every((obstacle) => !Phaser.Geom.Rectangle.Overlaps(candidate, obstacle.getBounds()));
   }
 
   private createBlocker(
@@ -526,7 +660,7 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private createTreeCover(x: number, y: number, stage: StageConfig): void {
-    const trunk = this.add.rectangle(x, y + 10, 34, 42, 0x4c321e, 0.7);
+    const trunk = this.add.rectangle(x, y + 4, 52, 58, 0x4c321e, 0.38);
     trunk.setDepth(5);
     this.physics.add.existing(trunk, true);
     this.obstacleBodies.push(trunk);
@@ -543,21 +677,24 @@ export class BattleScene extends Phaser.Scene {
     const pickups: Array<{ kind: WeaponKind; x: number; y: number }> = [
       { kind: 'shotgun', x: 390, y: stage.worldHeight * 0.5 },
       { kind: 'flame', x: Math.floor(stage.worldWidth * 0.42), y: stage.worldHeight * 0.5 - 120 },
+      { kind: 'sniper', x: Math.floor(stage.worldWidth * 0.52), y: stage.worldHeight * 0.5 + 120 },
+      { kind: 'explosiveArrow', x: Math.floor(stage.worldWidth * 0.58), y: stage.worldHeight * 0.5 - 150 },
       { kind: 'launcher', x: Math.floor(stage.worldWidth * 0.66), y: stage.worldHeight * 0.5 + 110 },
     ];
 
     for (const pickup of pickups) {
       const spec = WEAPONS[pickup.kind];
-      const crate = this.add.rectangle(pickup.x, pickup.y, 48, 30, spec.tint, 0.92);
+      const position = this.findOpenCoverSpot(pickup.x, pickup.y, 52, 34, stage, 12) ?? pickup;
+      const crate = this.add.rectangle(position.x, position.y, 52, 34, spec.tint, 0.92);
       crate.setDepth(9);
       crate.setStrokeStyle(2, 0xffffff, 0.34);
       crate.setData('weaponKind', pickup.kind);
       this.physics.add.existing(crate, true);
       this.weaponPickups?.add(crate);
 
-      const label = this.add.text(pickup.x, pickup.y - 2, spec.label.toUpperCase(), {
+      const label = this.add.text(position.x, position.y - 2, spec.label.toUpperCase(), {
         fontFamily: 'Bahnschrift, Trebuchet MS, sans-serif',
-        fontSize: '8px',
+        fontSize: '7px',
         color: '#09100b',
       }).setOrigin(0.5).setDepth(10);
       crate.setData('labelObject', label);
@@ -602,6 +739,14 @@ export class BattleScene extends Phaser.Scene {
         contactReadyAt: 0,
         weaponIndex: 0,
         weapons: ['rifle'],
+        ammo: {
+          rifle: -1,
+          shotgun: 0,
+          flame: 0,
+          launcher: 0,
+          sniper: 0,
+          explosiveArrow: 0,
+        },
         aim: new Phaser.Math.Vector2(1, 0),
         jumpVector: new Phaser.Math.Vector2(1, 0),
         virtualControlId: playerId === 1 ? 1 : undefined,
@@ -663,21 +808,28 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private createOverlayText(): void {
+    this.objectivePanel = this.add.image(0, 0, 'objective-plaque')
+      .setScrollFactor(0)
+      .setDepth(59)
+      .setAlpha(0);
+
     this.bannerText = this.add.text(36, 28, '', {
       fontFamily: 'Impact, Haettenschweiler, sans-serif',
       fontSize: '34px',
       color: '#f4e8c3',
       letterSpacing: 2,
-    }).setScrollFactor(0).setDepth(60);
+      align: 'center',
+    }).setScrollFactor(0).setDepth(60).setOrigin(0.5);
     this.bannerText.setAlpha(0);
 
     this.reticleText = this.add.text(36, 72, '', {
       fontFamily: 'Bahnschrift, Trebuchet MS, sans-serif',
-      fontSize: '15px',
-      color: '#d6dcc6',
+      fontSize: '19px',
+      color: '#f3e6bf',
       wordWrap: { width: 520 },
-    }).setScrollFactor(0).setDepth(60);
-    this.reticleText.setAlpha(0.92);
+      align: 'center',
+    }).setScrollFactor(0).setDepth(60).setOrigin(0.5);
+    this.reticleText.setAlpha(0);
     this.layoutOverlayText();
 
     this.scale.off(Phaser.Scale.Events.RESIZE, this.layoutOverlayText, this);
@@ -693,19 +845,26 @@ export class BattleScene extends Phaser.Scene {
     }
 
     const compact = this.scale.width <= 900;
-    const x = compact ? 14 : 36;
-    const bannerY = compact ? 74 : 28;
-    const reticleY = compact ? 110 : 72;
+    const x = this.scale.width * 0.5;
+    const panelY = compact ? 116 : 100;
+    const bannerY = compact ? panelY - 26 : panelY - 30;
+    const reticleY = compact ? panelY + 22 : panelY + 24;
     const wrapWidth = compact
-      ? Math.max(220, Math.min(this.scale.width - 28, 520))
-      : 520;
+      ? Math.max(240, Math.min(this.scale.width - 28, 560))
+      : 620;
+
+    this.objectivePanel?.setPosition(x, panelY);
+    if (this.objectivePanel) {
+      this.objectivePanel.displayWidth = Math.min(this.scale.width - 28, compact ? 560 : 720);
+      this.objectivePanel.displayHeight = compact ? 118 : 132;
+    }
 
     this.bannerText.setPosition(x, bannerY);
-    this.bannerText.setFontSize(compact ? '24px' : '34px');
+    this.bannerText.setFontSize(compact ? '28px' : '40px');
     this.bannerText.setWordWrapWidth(wrapWidth);
 
     this.reticleText.setPosition(x, reticleY);
-    this.reticleText.setFontSize(compact ? '14px' : '15px');
+    this.reticleText.setFontSize(compact ? '16px' : '19px');
     this.reticleText.setWordWrapWidth(wrapWidth);
   }
 
@@ -849,6 +1008,13 @@ export class BattleScene extends Phaser.Scene {
       const distance = direction.length();
       direction.normalize();
       enemy.sprite.setRotation(direction.angle());
+      const hasSight = this.hasLineOfSight(enemy.sprite.x, enemy.sprite.y, target.sprite.x, target.sprite.y);
+
+      if (!hasSight) {
+        enemy.sprite.setVelocity(0, 0);
+        this.playLoop(enemy.sprite, animationKey(getEnemyTextureKey(enemy.theme, enemy.kind, 'stand')));
+        continue;
+      }
 
       if (enemy.kind === 'turret') {
         enemy.sprite.setVelocity(0, 0);
@@ -992,7 +1158,7 @@ export class BattleScene extends Phaser.Scene {
           player.bombs = Math.min(player.bombs + 1, 5);
         }
       }
-      this.showBanner('Zone clear. Barrage restocked.', '#f1d486');
+      this.showBanner('Zone clear. Air Strike restocked.', '#f1d486');
     }
 
     this.allEncountersCleared = this.encounterStates.every((state) => state.cleared);
@@ -1141,6 +1307,10 @@ export class BattleScene extends Phaser.Scene {
     direction.normalize();
     player.aim.copy(direction);
     const weapon = this.getCurrentWeapon(player);
+    if (!this.consumeWeaponAmmo(player, weapon, time)) {
+      return;
+    }
+
     player.fireVisualUntil = time + 180;
     const startX = player.sprite.x + direction.x * 18;
     const startY = player.sprite.y + direction.y * 18;
@@ -1161,6 +1331,8 @@ export class BattleScene extends Phaser.Scene {
         weapon.maxDistance,
         weapon.scaleX,
         weapon.scaleY,
+        weapon.splashRadius,
+        weapon.splashDamage,
       );
     }
     player.nextFireAt = time + weapon.fireRate;
@@ -1170,13 +1342,47 @@ export class BattleScene extends Phaser.Scene {
     return WEAPONS[player.weapons[player.weaponIndex] ?? 'rifle'];
   }
 
+  private getAmmoLabel(player: PlayerUnit, weaponKind: WeaponKind): string {
+    const weapon = WEAPONS[weaponKind];
+    if (weapon.maxAmmo < 0) {
+      return 'inf';
+    }
+
+    return String(Math.max(0, player.ammo[weaponKind] ?? 0));
+  }
+
+  private consumeWeaponAmmo(player: PlayerUnit, weapon: WeaponSpec, time: number): boolean {
+    if (weapon.maxAmmo < 0 || weapon.ammoCost <= 0) {
+      return true;
+    }
+
+    const available = player.ammo[weapon.kind] ?? 0;
+    if (available >= weapon.ammoCost) {
+      player.ammo[weapon.kind] = available - weapon.ammoCost;
+      return true;
+    }
+
+    player.nextFireAt = time + 340;
+    this.showBanner(`${weapon.label} empty. Switching to Rifle.`, player.accent);
+    player.weaponIndex = Math.max(0, player.weapons.indexOf('rifle'));
+    this.emitHud('live');
+    return false;
+  }
+
   private switchWeapon(player: PlayerUnit): void {
     if (player.weapons.length <= 1) {
       this.showBanner('Find weapon crates to unlock more guns.', player.accent);
       return;
     }
 
-    player.weaponIndex = (player.weaponIndex + 1) % player.weapons.length;
+    for (let step = 1; step <= player.weapons.length; step += 1) {
+      const nextIndex = (player.weaponIndex + step) % player.weapons.length;
+      const nextWeapon = WEAPONS[player.weapons[nextIndex]];
+      if (nextWeapon.maxAmmo < 0 || (player.ammo[nextWeapon.kind] ?? 0) > 0) {
+        player.weaponIndex = nextIndex;
+        break;
+      }
+    }
     this.showBanner(`${player.label} switched to ${this.getCurrentWeapon(player).label}`, player.accent);
     this.emitHud('live');
   }
@@ -1221,6 +1427,8 @@ export class BattleScene extends Phaser.Scene {
     maxDistance: number,
     scaleX: number,
     scaleY: number,
+    splashRadius?: number,
+    splashDamage?: number,
   ): void {
     const bullet = this.physics.add.image(x, y, 'bullet-shell');
     bullet.setTint(tint);
@@ -1232,6 +1440,9 @@ export class BattleScene extends Phaser.Scene {
     this.configureBulletBody(bullet, direction, speed, maxDistance);
     bullet.setRotation(direction.angle());
     bullet.setData('damage', damage);
+    bullet.setData('splashRadius', splashRadius ?? 0);
+    bullet.setData('splashDamage', splashDamage ?? 0);
+    bullet.setData('splashTint', tint);
     bullet.setData('expiry', this.time.now + 2600);
     this.playerBullets?.add(bullet);
     this.createBulletTracer(x, y, direction, tint, Math.min(340, maxDistance * 0.46), 520);
@@ -1407,9 +1618,11 @@ export class BattleScene extends Phaser.Scene {
     }
 
     const damage = Number(bullet.getData('damage') ?? 15);
-    this.createHitSpark(enemy.sprite.x, enemy.sprite.y, 0xfff0aa, `-${damage}`);
-    this.dropBullet(bullet);
+    const impactX = enemy.sprite.x;
+    const impactY = enemy.sprite.y;
+    this.createHitSpark(impactX, impactY, 0xfff0aa, `-${damage}`);
     this.damageEnemy(enemy, damage);
+    this.resolvePlayerBulletImpact(bullet, impactX, impactY);
   }
 
   private handleBossHit(bulletObject: Phaser.GameObjects.GameObject, bossObject: Phaser.GameObjects.GameObject): void {
@@ -1420,9 +1633,11 @@ export class BattleScene extends Phaser.Scene {
     }
 
     const damage = Number(bullet.getData('damage') ?? 18);
-    this.createHitSpark(boss.sprite.x, boss.sprite.y, 0xff8457, `-${damage}`);
-    this.dropBullet(bullet);
+    const impactX = boss.sprite.x;
+    const impactY = boss.sprite.y;
+    this.createHitSpark(impactX, impactY, 0xff8457, `-${damage}`);
     this.damageBoss(boss, damage);
+    this.resolvePlayerBulletImpact(bullet, impactX, impactY);
   }
 
   private handlePlayerHit(bulletObject: Phaser.GameObjects.GameObject, playerObject: Phaser.GameObjects.GameObject): void {
@@ -1442,17 +1657,24 @@ export class BattleScene extends Phaser.Scene {
     const player = playerObject.getData('actor') as PlayerUnit | undefined;
     const pickup = pickupObject as Phaser.GameObjects.Rectangle;
     const weaponKind = pickup.getData('weaponKind') as WeaponKind | undefined;
-    if (!player || !player.alive || !weaponKind || player.weapons.includes(weaponKind)) {
+    if (!player || !player.alive || !weaponKind) {
       return;
     }
 
-    player.weapons.push(weaponKind);
-    player.weaponIndex = player.weapons.length - 1;
+    const weapon = WEAPONS[weaponKind];
+    if (!player.weapons.includes(weaponKind)) {
+      player.weapons.push(weaponKind);
+    }
+
+    player.ammo[weaponKind] = weapon.maxAmmo < 0
+      ? -1
+      : Math.min(weapon.maxAmmo, (player.ammo[weaponKind] ?? 0) + weapon.pickupAmmo);
+    player.weaponIndex = player.weapons.indexOf(weaponKind);
     const label = pickup.getData('labelObject') as Phaser.GameObjects.Text | undefined;
     label?.destroy();
     pickup.destroy();
 
-    this.showBanner(`${player.label} collected ${WEAPONS[weaponKind].label}`, player.accent);
+    this.showBanner(`${player.label} collected ${weapon.label} ammo ${this.getAmmoLabel(player, weaponKind)}`, player.accent);
     this.emitHud('live');
   }
 
@@ -1586,13 +1808,20 @@ export class BattleScene extends Phaser.Scene {
     this.bannerText.setColor(color);
     this.bannerText.setAlpha(1);
     this.reticleText?.setText(this.stage?.briefing ?? '');
-    this.tweens.killTweensOf(this.bannerText);
+    this.reticleText?.setAlpha(0.96);
+    this.objectivePanel?.setAlpha(0.82);
+    const targets = [this.bannerText, this.reticleText, this.objectivePanel]
+      .filter((target): target is Phaser.GameObjects.Text | Phaser.GameObjects.Image => Boolean(target));
+    for (const target of targets) {
+      this.tweens.killTweensOf(target);
+    }
+
     this.tweens.add({
-      targets: this.bannerText,
+      targets,
       alpha: 0,
-      duration: 1800,
+      duration: 1600,
       ease: 'Cubic.easeOut',
-      delay: 450,
+      delay: 1200,
     });
   }
 
@@ -1615,10 +1844,28 @@ export class BattleScene extends Phaser.Scene {
     return best;
   }
 
+  private hasLineOfSight(fromX: number, fromY: number, toX: number, toY: number): boolean {
+    const sightLine = new Phaser.Geom.Line(fromX, fromY, toX, toY);
+
+    for (const obstacle of this.obstacleBodies) {
+      const bounds = obstacle.getBounds();
+      const expanded = new Phaser.Geom.Rectangle(bounds.x - 3, bounds.y - 3, bounds.width + 6, bounds.height + 6);
+      if (expanded.contains(fromX, fromY)) {
+        continue;
+      }
+
+      if (Phaser.Geom.Intersects.LineToRectangle(sightLine, expanded)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   private destroyBulletObject(bulletObject: Phaser.GameObjects.GameObject): void {
     const bullet = bulletObject as Phaser.Physics.Arcade.Image;
     if (bullet.active) {
-      this.dropBullet(bullet);
+      this.resolvePlayerBulletImpact(bullet, bullet.x, bullet.y);
     }
   }
 
@@ -1668,7 +1915,62 @@ export class BattleScene extends Phaser.Scene {
         || traveled >= maxDistance
         || !Phaser.Geom.Rectangle.Overlaps(this.physics.world.bounds, bullet.getBounds())
       ) {
-        this.dropBullet(bullet);
+        this.resolvePlayerBulletImpact(bullet, bullet.x, bullet.y);
+      }
+    }
+  }
+
+  private resolvePlayerBulletImpact(bullet: Phaser.Physics.Arcade.Image, x: number, y: number): void {
+    if (!bullet.active) {
+      return;
+    }
+
+    const splashRadius = Number(bullet.getData('splashRadius') ?? 0);
+    const splashDamage = Number(bullet.getData('splashDamage') ?? 0);
+    const splashTint = Number(bullet.getData('splashTint') ?? 0xfff0aa);
+    if (splashRadius > 0 && splashDamage > 0) {
+      this.createExplosion(x, y, splashRadius, splashDamage, splashTint);
+    }
+
+    this.dropBullet(bullet);
+  }
+
+  private createExplosion(x: number, y: number, radius: number, damage: number, tint: number): void {
+    const blast = this.add.image(x, y, 'blast-circle');
+    blast.setTint(tint);
+    blast.setAlpha(0.48);
+    blast.setDepth(18);
+    blast.setScale(0.12);
+    blast.setBlendMode(Phaser.BlendModes.ADD);
+
+    this.tweens.add({
+      targets: blast,
+      scale: radius / 10,
+      alpha: 0,
+      duration: 280,
+      ease: 'Quad.easeOut',
+      onComplete: () => blast.destroy(),
+    });
+
+    for (const enemy of this.enemies) {
+      if (!enemy.alive) {
+        continue;
+      }
+
+      const distance = Phaser.Math.Distance.Between(x, y, enemy.sprite.x, enemy.sprite.y);
+      if (distance <= radius) {
+        const falloff = Phaser.Math.Clamp(1 - distance / Math.max(radius, 1), 0.35, 1);
+        this.createHitSpark(enemy.sprite.x, enemy.sprite.y, tint, `-${Math.ceil(damage * falloff)}`);
+        this.damageEnemy(enemy, Math.ceil(damage * falloff));
+      }
+    }
+
+    if (this.boss?.alive) {
+      const distance = Phaser.Math.Distance.Between(x, y, this.boss.sprite.x, this.boss.sprite.y);
+      if (distance <= radius) {
+        const falloff = Phaser.Math.Clamp(1 - distance / Math.max(radius, 1), 0.25, 1);
+        this.createHitSpark(this.boss.sprite.x, this.boss.sprite.y, tint, `-${Math.ceil(damage * falloff)}`);
+        this.damageBoss(this.boss, Math.ceil(damage * falloff));
       }
     }
   }
@@ -1766,6 +2068,11 @@ export class BattleScene extends Phaser.Scene {
         accent: player.accent,
         weapon: this.getCurrentWeapon(player).label,
         weapons: player.weapons.map((weapon) => WEAPONS[weapon].label),
+        ammo: player.weapons.map((weaponKind) => ({
+          label: WEAPONS[weaponKind].shortLabel,
+          ammo: this.getAmmoLabel(player, weaponKind),
+          active: WEAPONS[weaponKind].kind === this.getCurrentWeapon(player).kind,
+        })),
       })),
       boss: this.boss && this.boss.alive
         ? {
