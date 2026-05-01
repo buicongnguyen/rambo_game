@@ -39,6 +39,16 @@ interface WeaponSpec {
   splashDamage?: number;
   pierceCount?: number;
   beamWidth?: number;
+  dropStartRatio?: number;
+  tracerDistance?: number;
+}
+
+type BulletZoneEffect = 'drag' | 'boost' | 'crosswind';
+
+interface BulletEffectZone {
+  bounds: Phaser.Geom.Rectangle;
+  effect: BulletZoneEffect;
+  label: string;
 }
 
 const WEAPONS: Record<WeaponKind, WeaponSpec> = {
@@ -118,9 +128,9 @@ const WEAPONS: Record<WeaponKind, WeaponSpec> = {
     shortLabel: 'SNP',
     tint: 0xdaf7ff,
     fireRate: 760,
-    bulletSpeed: 620,
+    bulletSpeed: 860,
     damage: 150,
-    maxDistance: 1180,
+    maxDistance: 1900,
     maxAmmo: 18,
     pickupAmmo: 9,
     ammoCost: 1,
@@ -129,6 +139,8 @@ const WEAPONS: Record<WeaponKind, WeaponSpec> = {
     scaleX: 2.8,
     scaleY: 1.05,
     pierceCount: 4,
+    dropStartRatio: 0.96,
+    tracerDistance: 760,
   },
   explosiveArrow: {
     kind: 'explosiveArrow',
@@ -299,6 +311,7 @@ export class BattleScene extends Phaser.Scene {
   private enemyBullets?: Phaser.Physics.Arcade.Group;
   private weaponPickups?: Phaser.Physics.Arcade.StaticGroup;
   private obstacleBodies: Phaser.GameObjects.Rectangle[] = [];
+  private bulletZones: BulletEffectZone[] = [];
   private spawnDoors = new Map<string, SpawnDoor>();
   private cameraTarget?: Phaser.GameObjects.Zone;
   private bannerText?: Phaser.GameObjects.Text;
@@ -502,10 +515,12 @@ export class BattleScene extends Phaser.Scene {
     this.enemyBullets = this.physics.add.group();
     this.weaponPickups = this.physics.add.staticGroup();
     this.obstacleBodies = [];
+    this.bulletZones = [];
     this.cameraTarget = this.add.zone(140, this.stage.worldHeight * 0.5, 4, 4);
     this.cameras.main.startFollow(this.cameraTarget, true, 0.08, 0.08);
     this.cameras.main.setDeadzone(140, 120);
 
+    this.createBulletEffectZones(this.stage);
     this.createObstacles(this.stage);
     this.createBattlefieldCover(this.stage);
     this.createWeaponPickups(this.stage);
@@ -570,6 +585,72 @@ export class BattleScene extends Phaser.Scene {
       rect.setDepth(4);
       this.physics.add.existing(rect, true);
       this.obstacleBodies.push(rect);
+    }
+  }
+
+  private createBulletEffectZones(stage: StageConfig): void {
+    const zones: Array<{
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+      effect: BulletZoneEffect;
+      label: string;
+      tint: number;
+    }> = [
+      {
+        x: Math.floor(stage.worldWidth * 0.29),
+        y: Math.floor(stage.worldHeight * 0.5),
+        width: 260,
+        height: 300,
+        effect: 'drag',
+        label: 'DAMP ZONE: bullets slow and drop',
+        tint: 0x2e8cff,
+      },
+      {
+        x: Math.floor(stage.worldWidth * 0.48),
+        y: Math.floor(stage.worldHeight * 0.34),
+        width: 300,
+        height: 240,
+        effect: 'crosswind',
+        label: 'WIND ZONE: bullets drift',
+        tint: 0x93f1a5,
+      },
+      {
+        x: Math.floor(stage.worldWidth * 0.69),
+        y: Math.floor(stage.worldHeight * 0.58),
+        width: 320,
+        height: 280,
+        effect: 'boost',
+        label: 'CHARGE ZONE: bullets carry farther',
+        tint: 0xf4d35e,
+      },
+    ];
+
+    for (const zone of zones) {
+      const bounds = new Phaser.Geom.Rectangle(
+        zone.x - zone.width * 0.5,
+        zone.y - zone.height * 0.5,
+        zone.width,
+        zone.height,
+      );
+      this.bulletZones.push({
+        bounds,
+        effect: zone.effect,
+        label: zone.label,
+      });
+
+      const panel = this.add.rectangle(zone.x, zone.y, zone.width, zone.height, zone.tint, 0.09);
+      panel.setDepth(-6);
+      panel.setStrokeStyle(3, zone.tint, 0.58);
+
+      this.add.text(bounds.x + 12, bounds.y + 10, zone.label, {
+        fontFamily: 'Bahnschrift, Trebuchet MS, sans-serif',
+        fontSize: '11px',
+        color: '#fff2c4',
+        stroke: '#061008',
+        strokeThickness: 3,
+      }).setDepth(-5).setAlpha(0.88);
     }
   }
 
@@ -1399,8 +1480,13 @@ export class BattleScene extends Phaser.Scene {
     }
 
     player.fireVisualUntil = time + 180;
-    const startX = player.sprite.x + direction.x * 18;
-    const startY = player.sprite.y + direction.y * 18;
+    const muzzle = this.findClearBulletStart(
+      player.sprite.x + direction.x * 26,
+      player.sprite.y + direction.y * 26,
+      direction,
+    );
+    const startX = muzzle.x;
+    const startY = muzzle.y;
     this.createMuzzleFlash(startX, startY, direction, weapon.tint);
 
     if (weapon.kind === 'laser') {
@@ -1428,9 +1514,29 @@ export class BattleScene extends Phaser.Scene {
         weapon.splashRadius,
         weapon.splashDamage,
         weapon.pierceCount,
+        weapon.dropStartRatio,
+        weapon.tracerDistance,
       );
     }
     player.nextFireAt = time + weapon.fireRate;
+  }
+
+  private findClearBulletStart(x: number, y: number, direction: Phaser.Math.Vector2): { x: number; y: number } {
+    for (let step = 0; step < 8; step += 1) {
+      const candidateX = x + direction.x * step * 14;
+      const candidateY = y + direction.y * step * 14;
+      const blocked = this.obstacleBodies.some((obstacle) => {
+        const bounds = obstacle.getBounds();
+        Phaser.Geom.Rectangle.Inflate(bounds, 8, 8);
+        return bounds.contains(candidateX, candidateY);
+      });
+
+      if (!blocked) {
+        return { x: candidateX, y: candidateY };
+      }
+    }
+
+    return { x, y };
   }
 
   private getCurrentWeapon(player: PlayerUnit): WeaponSpec {
@@ -1525,6 +1631,8 @@ export class BattleScene extends Phaser.Scene {
     splashRadius?: number,
     splashDamage?: number,
     pierceCount?: number,
+    dropStartRatio?: number,
+    tracerDistance?: number,
   ): void {
     const bullet = this.physics.add.image(x, y, 'bullet-shell');
     bullet.setTint(tint);
@@ -1533,7 +1641,8 @@ export class BattleScene extends Phaser.Scene {
     bullet.setBlendMode(Phaser.BlendModes.ADD);
     bullet.setData('baseScaleX', bullet.scaleX);
     bullet.setData('baseScaleY', bullet.scaleY);
-    this.configureBulletBody(bullet, direction, speed, maxDistance);
+    bullet.setData('baseTint', tint);
+    this.configureBulletBody(bullet, direction, speed, maxDistance, dropStartRatio);
     bullet.setRotation(direction.angle());
     bullet.setData('damage', damage);
     bullet.setData('splashRadius', splashRadius ?? 0);
@@ -1541,9 +1650,9 @@ export class BattleScene extends Phaser.Scene {
     bullet.setData('splashTint', tint);
     bullet.setData('pierceRemaining', pierceCount ?? 1);
     bullet.setData('hitTargets', []);
-    bullet.setData('expiry', this.time.now + 2600);
+    bullet.setData('expiry', this.time.now + (pierceCount && pierceCount > 1 ? 4200 : 2600));
     this.playerBullets?.add(bullet);
-    this.createBulletTracer(x, y, direction, tint, Math.min(340, maxDistance * 0.46), 520);
+    this.createBulletTracer(x, y, direction, tint, tracerDistance ?? Math.min(340, maxDistance * 0.46), 520);
   }
 
   private fireLaserBeam(
@@ -1690,6 +1799,7 @@ export class BattleScene extends Phaser.Scene {
     bullet.setBlendMode(Phaser.BlendModes.ADD);
     bullet.setData('baseScaleX', bullet.scaleX);
     bullet.setData('baseScaleY', bullet.scaleY);
+    bullet.setData('baseTint', tint);
     this.configureBulletBody(bullet, direction, speed, 720);
     bullet.setRotation(direction.angle());
     bullet.setData('damage', damage);
@@ -1704,6 +1814,7 @@ export class BattleScene extends Phaser.Scene {
     direction: Phaser.Math.Vector2,
     speed: number,
     maxDistance: number,
+    dropStartRatio = 0.78,
   ): void {
     const body = bullet.body as Phaser.Physics.Arcade.Body;
     body.setAllowGravity(false);
@@ -1715,7 +1826,9 @@ export class BattleScene extends Phaser.Scene {
     bullet.setData('velocityX', direction.x * speed);
     bullet.setData('velocityY', direction.y * speed);
     bullet.setData('maxDistance', maxDistance);
-    bullet.setData('dropStartDistance', maxDistance * 0.78);
+    bullet.setData('baseMaxDistance', maxDistance);
+    bullet.setData('baseDropStartRatio', dropStartRatio);
+    bullet.setData('dropStartDistance', maxDistance * dropStartRatio);
   }
 
   private fireBossPattern(boss: BossUnit, baseAngle: number): void {
@@ -2098,11 +2211,21 @@ export class BattleScene extends Phaser.Scene {
       const velocityY = Number(bullet.getData('velocityY') ?? 0);
       const originX = Number(bullet.getData('originX') ?? bullet.x);
       const originY = Number(bullet.getData('originY') ?? bullet.y);
-      const maxDistance = Number(bullet.getData('maxDistance') ?? 700);
+      const baseMaxDistance = Number(bullet.getData('baseMaxDistance') ?? bullet.getData('maxDistance') ?? 700);
+      let maxDistance = Number(bullet.getData('maxDistance') ?? baseMaxDistance);
       const dropStartDistance = Number(bullet.getData('dropStartDistance') ?? maxDistance * 0.78);
       const seconds = Math.min(delta, 50) / 1000;
-      const nextX = bullet.x + velocityX * seconds;
-      const nextY = bullet.y + velocityY * seconds;
+      const zone = this.getBulletEffectZoneAt(bullet.x, bullet.y);
+      const zoneVelocity = this.applyBulletZoneVelocity(bullet, velocityX, velocityY, seconds, zone);
+      if (zone?.effect === 'boost') {
+        const boostedDistance = baseMaxDistance * 1.28;
+        maxDistance = Math.max(maxDistance, boostedDistance);
+        bullet.setData('maxDistance', maxDistance);
+        bullet.setData('dropStartDistance', maxDistance * Number(bullet.getData('baseDropStartRatio') ?? 0.78));
+      }
+
+      const nextX = bullet.x + zoneVelocity.x * seconds;
+      const nextY = bullet.y + zoneVelocity.y * seconds;
 
       bullet.setPosition(nextX, nextY);
       (bullet.body as Phaser.Physics.Arcade.Body).reset(nextX, nextY);
@@ -2131,6 +2254,46 @@ export class BattleScene extends Phaser.Scene {
         this.resolvePlayerBulletImpact(bullet, bullet.x, bullet.y);
       }
     }
+  }
+
+  private getBulletEffectZoneAt(x: number, y: number): BulletEffectZone | undefined {
+    return this.bulletZones.find((zone) => zone.bounds.contains(x, y));
+  }
+
+  private applyBulletZoneVelocity(
+    bullet: Phaser.Physics.Arcade.Image,
+    velocityX: number,
+    velocityY: number,
+    seconds: number,
+    zone: BulletEffectZone | undefined,
+  ): { x: number; y: number } {
+    if (!zone) {
+      bullet.setTint(Number(bullet.getData('baseTint') ?? 0xffffff));
+      return { x: velocityX, y: velocityY };
+    }
+
+    if (zone.effect === 'drag') {
+      bullet.setTint(0x93c9ff);
+      return {
+        x: velocityX * 0.56,
+        y: velocityY * 0.56 + 34,
+      };
+    }
+
+    if (zone.effect === 'crosswind') {
+      const drift = Math.sin(this.time.now / 220) * 85;
+      bullet.setTint(0x9ff5b5);
+      return {
+        x: velocityX + -velocityY * 0.08 + drift * seconds * 8,
+        y: velocityY + velocityX * 0.08,
+      };
+    }
+
+    bullet.setTint(0xfff0a6);
+    return {
+      x: velocityX * 1.18,
+      y: velocityY * 1.18,
+    };
   }
 
   private resolvePlayerBulletImpact(bullet: Phaser.Physics.Arcade.Image, x: number, y: number): void {
