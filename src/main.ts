@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import './style.css';
+import { BattleMusic } from './game/audio/BattleMusic';
 import { GameDirector } from './game/core/GameDirector';
 import { VirtualGamepad } from './game/core/VirtualGamepad';
 import { BattleScene } from './game/scenes/BattleScene';
@@ -46,7 +47,12 @@ if (!hudRoot || !overlayRoot || !intelRoot || !touchControlsRoot) {
 
 const director = new GameDirector();
 const virtualGamepad = new VirtualGamepad();
-const ui = new InterfaceController({ hudRoot, overlayRoot, intelRoot }, director);
+const battleMusic = new BattleMusic();
+const ui = new InterfaceController(
+  { hudRoot, overlayRoot, intelRoot },
+  director,
+  { startMusic: () => battleMusic.start() },
+);
 new TouchControlsOverlay(touchControlsRoot, director, virtualGamepad);
 
 new Phaser.Game({

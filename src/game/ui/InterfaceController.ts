@@ -8,21 +8,27 @@ interface InterfaceRoots {
   intelRoot: HTMLElement;
 }
 
+interface InterfaceOptions {
+  startMusic?: () => void;
+}
+
 export class InterfaceController {
   private readonly hudRoot: HTMLElement;
   private readonly overlayRoot: HTMLElement;
   private readonly intelRoot: HTMLElement;
   private readonly director: GameDirector;
+  private readonly startMusic?: () => void;
   private hudSnapshot: HudSnapshot | null = null;
   private sessionSnapshot: SessionSnapshot;
   private lastHudSignature = '';
   private selectedDifficulty: DifficultyMode = 'normal';
 
-  constructor(roots: InterfaceRoots, director: GameDirector) {
+  constructor(roots: InterfaceRoots, director: GameDirector, options: InterfaceOptions = {}) {
     this.hudRoot = roots.hudRoot;
     this.overlayRoot = roots.overlayRoot;
     this.intelRoot = roots.intelRoot;
     this.director = director;
+    this.startMusic = options.startMusic;
     this.sessionSnapshot = director.getSnapshot();
 
     this.director.subscribe((snapshot) => {
@@ -135,6 +141,7 @@ export class InterfaceController {
     const buttons = this.overlayRoot.querySelectorAll<HTMLButtonElement>('button[data-players]');
     for (const button of buttons) {
       button.addEventListener('click', () => {
+        this.startMusic?.();
         const players = Number(button.dataset.players) === 2 ? 2 : 1;
         if (snapshot.phase === 'intermission') {
           this.director.advanceToNextStage(players);
@@ -249,6 +256,7 @@ export class InterfaceController {
           <div class="overlay-notes">
             <span>Next up: ${stage.codename}</span>
             <span>${stage.briefing}</span>
+            <span>Battle music starts after Start. On mobile, make sure silent mode is off.</span>
           </div>
         </section>
       `;
@@ -266,6 +274,7 @@ export class InterfaceController {
           <div class="overlay-notes">
             <span>Next Stage: ${stage.codename}</span>
             <span>${stage.briefing}</span>
+            <span>Music continues after Continue. Turn up the device volume if it is quiet.</span>
           </div>
           <div class="overlay-actions">
             <button type="button" class="action-button primary" data-players="1">Continue Solo</button>
