@@ -51,6 +51,15 @@ interface BulletEffectZone {
   label: string;
 }
 
+type TerrainEffect = 'water' | 'high';
+
+interface TerrainZone {
+  bounds: Phaser.Geom.Rectangle;
+  effect: TerrainEffect;
+  label: string;
+  height: number;
+}
+
 const WEAPONS: Record<WeaponKind, WeaponSpec> = {
   rifle: {
     kind: 'rifle',
@@ -312,8 +321,10 @@ export class BattleScene extends Phaser.Scene {
   private weaponPickups?: Phaser.Physics.Arcade.StaticGroup;
   private obstacleBodies: Phaser.GameObjects.Rectangle[] = [];
   private bulletZones: BulletEffectZone[] = [];
+  private terrainZones: TerrainZone[] = [];
   private spawnDoors = new Map<string, SpawnDoor>();
   private cameraTarget?: Phaser.GameObjects.Zone;
+  private baseCameraZoom = 1;
   private bannerText?: Phaser.GameObjects.Text;
   private reticleText?: Phaser.GameObjects.Text;
   private objectivePanel?: Phaser.GameObjects.Image;
@@ -516,10 +527,12 @@ export class BattleScene extends Phaser.Scene {
     this.weaponPickups = this.physics.add.staticGroup();
     this.obstacleBodies = [];
     this.bulletZones = [];
+    this.terrainZones = [];
     this.cameraTarget = this.add.zone(140, this.stage.worldHeight * 0.5, 4, 4);
     this.cameras.main.startFollow(this.cameraTarget, true, 0.08, 0.08);
     this.cameras.main.setDeadzone(140, 120);
 
+    this.createTerrainZones(this.stage);
     this.createBulletEffectZones(this.stage);
     this.createObstacles(this.stage);
     this.createBattlefieldCover(this.stage);
@@ -585,6 +598,109 @@ export class BattleScene extends Phaser.Scene {
       rect.setDepth(4);
       this.physics.add.existing(rect, true);
       this.obstacleBodies.push(rect);
+    }
+  }
+
+  private createTerrainZones(stage: StageConfig): void {
+    const waterTint = stage.palette.water ?? 0x1f5867;
+    const zones: Array<{
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+      effect: TerrainEffect;
+      label: string;
+      level: number;
+      tint: number;
+      alpha: number;
+    }> = [
+      {
+        x: Math.floor(stage.worldWidth * 0.24),
+        y: Math.floor(stage.worldHeight * 0.72),
+        width: 340,
+        height: 150,
+        effect: 'water',
+        label: 'WATER - slow crossing',
+        level: -1,
+        tint: waterTint,
+        alpha: 0.32,
+      },
+      {
+        x: Math.floor(stage.worldWidth * 0.54),
+        y: Math.floor(stage.worldHeight * 0.62),
+        width: 330,
+        height: 180,
+        effect: 'high',
+        label: 'HIGH GROUND +2 - jump here to see farther',
+        level: 2,
+        tint: 0xb8873a,
+        alpha: 0.25,
+      },
+      {
+        x: Math.floor(stage.worldWidth * 0.78),
+        y: Math.floor(stage.worldHeight * 0.34),
+        width: 360,
+        height: 170,
+        effect: 'high',
+        label: 'RIDGE +3 - long visible range',
+        level: 3,
+        tint: 0xd3a54b,
+        alpha: 0.28,
+      },
+    ];
+
+    for (const zone of zones) {
+      const bounds = new Phaser.Geom.Rectangle(
+        zone.x - zone.width * 0.5,
+        zone.y - zone.height * 0.5,
+        zone.width,
+        zone.height,
+      );
+      this.terrainZones.push({
+        bounds,
+        effect: zone.effect,
+        label: zone.label,
+        height: zone.level,
+      });
+
+      const panel = this.add.rectangle(zone.x, zone.y, zone.width, zone.height, zone.tint, zone.alpha);
+      panel.setDepth(-12);
+      panel.setStrokeStyle(3, zone.tint, 0.72);
+
+      if (zone.effect === 'high') {
+        panel.setAngle(-2);
+        for (let index = 0; index < 4; index += 1) {
+          this.add.rectangle(
+            zone.x - zone.width * 0.35 + index * (zone.width * 0.22),
+            zone.y + zone.height * 0.28,
+            zone.width * 0.22,
+            5,
+            0x3c2814,
+            0.32,
+          ).setDepth(-11).setAngle(-2);
+        }
+      }
+
+      if (zone.effect === 'water') {
+        for (let index = 0; index < 5; index += 1) {
+          this.add.rectangle(
+            bounds.x + 36 + index * 62,
+            zone.y + Math.sin(index) * 18,
+            48,
+            5,
+            0xb9f7ff,
+            0.26,
+          ).setDepth(-11);
+        }
+      }
+
+      this.add.text(bounds.x + 12, bounds.y + 10, zone.label, {
+        fontFamily: 'Bahnschrift, Trebuchet MS, sans-serif',
+        fontSize: '11px',
+        color: '#fff2c4',
+        stroke: '#061008',
+        strokeThickness: 3,
+      }).setDepth(-10).setAlpha(0.92);
     }
   }
 
@@ -1010,6 +1126,7 @@ export class BattleScene extends Phaser.Scene {
       : Phaser.Math.Clamp(width / targetWidth, minZoom, 1);
 
     this.cameras.main.setZoom(zoom);
+    this.baseCameraZoom = zoom;
     const stage = this.stage ?? this.director.getSnapshot().currentStage;
     this.cameras.main.setBounds(
       0,
@@ -1035,6 +1152,7 @@ export class BattleScene extends Phaser.Scene {
       const movement = this.getMovementInput(player);
       const wantsFire = this.isActionDown(player, 'fire');
       const isJumping = time < player.jumpUntil;
+      const terrain = this.getTerrainAt(player.sprite.x, player.sprite.y);
 
       if (movement.lengthSq() > 0) {
         movement.normalize();
@@ -1073,6 +1191,11 @@ export class BattleScene extends Phaser.Scene {
         player.sprite.setScale(1);
         if (movement.lengthSq() > 0) {
           speed = wantsFire ? player.walkSpeed : player.moveSpeed;
+          if (terrain?.effect === 'water') {
+            speed *= 0.58;
+          } else if (terrain?.effect === 'high') {
+            speed *= 0.94;
+          }
           player.sprite.setVelocity(movement.x * speed, movement.y * speed);
           animation = wantsFire ? animationKey('player-walk') : animationKey('player-run');
         } else {
@@ -1296,7 +1419,43 @@ export class BattleScene extends Phaser.Scene {
       { x: 0, y: 0 },
     );
 
-    this.cameraTarget.setPosition(total.x / living.length, total.y / living.length);
+    const focusX = total.x / living.length;
+    const focusY = total.y / living.length;
+    const highGroundPlayer = living.find((player) => this.isPlayerUsingHighGround(player));
+    if (highGroundPlayer) {
+      const ahead = highGroundPlayer.aim.lengthSq() > 0
+        ? highGroundPlayer.aim.clone().normalize()
+        : new Phaser.Math.Vector2(1, 0);
+      const height = this.getTerrainAt(highGroundPlayer.sprite.x, highGroundPlayer.sprite.y)?.height ?? 2;
+      this.cameraTarget.setPosition(focusX + ahead.x * (150 + height * 44), focusY + ahead.y * (70 + height * 18));
+      this.setCameraZoomForViewRange(height);
+      return;
+    }
+
+    this.cameraTarget.setPosition(focusX, focusY);
+    this.setCameraZoomForViewRange(0);
+  }
+
+  private isPlayerUsingHighGround(player: PlayerUnit): boolean {
+    const terrain = this.getTerrainAt(player.sprite.x, player.sprite.y);
+    if (terrain?.effect === 'high') {
+      return true;
+    }
+
+    if (this.time.now >= player.jumpUntil) {
+      return false;
+    }
+
+    const landingX = player.sprite.x + player.jumpVector.x * 42;
+    const landingY = player.sprite.y + player.jumpVector.y * 42;
+    return this.getTerrainAt(landingX, landingY)?.effect === 'high';
+  }
+
+  private setCameraZoomForViewRange(height: number): void {
+    const targetZoom = height > 0
+      ? Math.max(0.42, this.baseCameraZoom - (height >= 3 ? 0.17 : 0.12))
+      : this.baseCameraZoom;
+    this.cameras.main.setZoom(Phaser.Math.Linear(this.cameras.main.zoom, targetZoom, 0.08));
   }
 
   private checkEncounterTriggers(): void {
@@ -2258,6 +2417,10 @@ export class BattleScene extends Phaser.Scene {
 
   private getBulletEffectZoneAt(x: number, y: number): BulletEffectZone | undefined {
     return this.bulletZones.find((zone) => zone.bounds.contains(x, y));
+  }
+
+  private getTerrainAt(x: number, y: number): TerrainZone | undefined {
+    return this.terrainZones.find((zone) => zone.bounds.contains(x, y));
   }
 
   private applyBulletZoneVelocity(
