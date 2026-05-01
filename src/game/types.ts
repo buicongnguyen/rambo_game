@@ -2,7 +2,7 @@ export type SessionPhase = 'menu' | 'playing' | 'intermission' | 'gameover' | 'v
 export type EnemyKind = 'rifleman' | 'rocketeer' | 'turret';
 export type BossKind = 'gunship' | 'barge' | 'tank';
 export type StageThemeId = 'emerald' | 'river' | 'blacksite';
-export type WeaponKind = 'rifle' | 'shotgun' | 'flame' | 'launcher' | 'sniper' | 'explosiveArrow' | 'missile' | 'laser';
+export type WeaponKind = 'rifle' | 'shotgun' | 'flame' | 'launcher' | 'sniper' | 'explosiveArrow' | 'missile' | 'laser' | 'machineGun';
 
 export interface StagePalette {
   sky: number;
