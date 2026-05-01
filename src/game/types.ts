@@ -1,5 +1,5 @@
 export type SessionPhase = 'menu' | 'playing' | 'intermission' | 'gameover' | 'victory';
-export type EnemyKind = 'rifleman' | 'rocketeer' | 'turret';
+export type EnemyKind = 'rifleman' | 'rocketeer' | 'turret' | 'zombie';
 export type BossKind = 'gunship' | 'barge' | 'tank';
 export type StageThemeId = 'emerald' | 'river' | 'blacksite';
 export type WeaponKind = 'rifle' | 'shotgun' | 'flame' | 'launcher' | 'sniper' | 'explosiveArrow' | 'missile' | 'laser' | 'machineGun';

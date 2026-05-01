@@ -1011,24 +1011,31 @@ export class BattleScene extends Phaser.Scene {
     ];
 
     for (const pickup of pickups) {
-      const spec = WEAPONS[pickup.kind];
       const position = this.findOpenCoverSpot(pickup.x, pickup.y, 52, 34, stage, 12) ?? pickup;
-      const crate = this.add.rectangle(position.x, position.y, 56, 38, spec.tint, 0.92);
-      crate.setDepth(9);
-      crate.setStrokeStyle(2, 0xffffff, 0.34);
-      crate.setData('weaponKind', pickup.kind);
-      this.physics.add.existing(crate, true);
-      this.weaponPickups?.add(crate);
-
-      const label = this.add.text(position.x, position.y - 1, this.getWeaponIcon(pickup.kind), {
-        fontFamily: 'Impact, Haettenschweiler, sans-serif',
-        fontSize: '27px',
-        color: '#09100b',
-        stroke: '#fff6c8',
-        strokeThickness: 2,
-      }).setOrigin(0.5).setDepth(10);
-      crate.setData('labelObject', label);
+      this.createWeaponPickupCrate(pickup.kind, position.x, position.y, stage.id);
     }
+  }
+
+  private createWeaponPickupCrate(kind: WeaponKind, x: number, y: number, stageId: string): void {
+    const spec = WEAPONS[kind];
+    const crate = this.add.rectangle(x, y, 56, 38, spec.tint, 0.92);
+    crate.setDepth(9);
+    crate.setStrokeStyle(2, 0xffffff, 0.34);
+    crate.setData('weaponKind', kind);
+    crate.setData('respawnX', x);
+    crate.setData('respawnY', y);
+    crate.setData('stageId', stageId);
+    this.physics.add.existing(crate, true);
+    this.weaponPickups?.add(crate);
+
+    const label = this.add.text(x, y - 1, this.getWeaponIcon(kind), {
+      fontFamily: 'Impact, Haettenschweiler, sans-serif',
+      fontSize: '27px',
+      color: '#09100b',
+      stroke: '#fff6c8',
+      strokeThickness: 2,
+    }).setOrigin(0.5).setDepth(10);
+    crate.setData('labelObject', label);
   }
 
   private getWeaponIcon(kind: WeaponKind): string {
@@ -1680,7 +1687,14 @@ export class BattleScene extends Phaser.Scene {
         continue;
       }
 
-      if (enemy.kind === 'turret') {
+      if (enemy.kind === 'zombie') {
+        enemy.sprite.setVelocity(direction.x * enemy.moveSpeed, direction.y * enemy.moveSpeed);
+        if (distance <= 34 && time >= enemy.contactReadyAt) {
+          enemy.contactReadyAt = time + 760;
+          this.createHitSpark(target.sprite.x, target.sprite.y, 0x9cff8a, '-bite');
+          this.damagePlayer(target, enemy.damage);
+        }
+      } else if (enemy.kind === 'turret') {
         enemy.sprite.setVelocity(0, 0);
       } else {
         const desiredRange = enemy.kind === 'rocketeer' ? 280 : 190;
@@ -1697,7 +1711,7 @@ export class BattleScene extends Phaser.Scene {
       }
 
       const fireRange = enemy.kind === 'rocketeer' ? 470 : 360;
-      if (distance <= fireRange && time >= enemy.nextFireAt) {
+      if (enemy.kind !== 'zombie' && distance <= fireRange && time >= enemy.nextFireAt) {
         const spread = enemy.kind === 'rocketeer' ? 0.12 : 0.05;
         this.fireEnemyBullet(
           enemy.sprite.x + direction.x * 14,
@@ -1711,7 +1725,7 @@ export class BattleScene extends Phaser.Scene {
         enemy.fireVisualUntil = time + 200;
       }
 
-      const action = time < enemy.fireVisualUntil ? 'fire' : 'stand';
+      const action = enemy.kind !== 'zombie' && time < enemy.fireVisualUntil ? 'fire' : 'stand';
       this.playLoop(enemy.sprite, animationKey(getEnemyTextureKey(enemy.theme, enemy.kind, action)));
     }
   }
@@ -1788,8 +1802,8 @@ export class BattleScene extends Phaser.Scene {
         continue;
       }
 
-      const range = enemy.kind === 'rocketeer' ? 470 : enemy.kind === 'turret' ? 420 : 360;
-      const halfAngle = enemy.kind === 'turret' ? 0.3 : 0.42;
+      const range = enemy.kind === 'zombie' ? 210 : enemy.kind === 'rocketeer' ? 470 : enemy.kind === 'turret' ? 420 : 360;
+      const halfAngle = enemy.kind === 'zombie' ? 0.62 : enemy.kind === 'turret' ? 0.3 : 0.42;
       const angle = enemy.sprite.rotation;
       const leftX = enemy.sprite.x + Math.cos(angle - halfAngle) * range;
       const leftY = enemy.sprite.y + Math.sin(angle - halfAngle) * range;
@@ -2020,20 +2034,24 @@ export class BattleScene extends Phaser.Scene {
     const sprite = this.physics.add.sprite(x, y, getEnemyTextureKey(theme, kind, 'stand'), 0);
     sprite.setDepth(kind === 'turret' ? 8 : 11);
     sprite.setCollideWorldBounds(true);
-    this.configureBody(sprite, kind === 'turret' ? 20 : 16, kind === 'turret' ? 14 : 14);
+    if (kind === 'zombie') {
+      sprite.setScale(0.84);
+      sprite.setTint(0x9bdc73);
+    }
+    this.configureBody(sprite, kind === 'turret' ? 20 : kind === 'zombie' ? 13 : 16, 14);
 
     const enemy: EnemyUnit = {
       id,
       kind,
       theme,
       sprite,
-      health: kind === 'turret' ? 130 : kind === 'rocketeer' ? 85 : 50,
-      maxHealth: kind === 'turret' ? 130 : kind === 'rocketeer' ? 85 : 50,
+      health: kind === 'zombie' ? 28 : kind === 'turret' ? 130 : kind === 'rocketeer' ? 85 : 50,
+      maxHealth: kind === 'zombie' ? 28 : kind === 'turret' ? 130 : kind === 'rocketeer' ? 85 : 50,
       alive: true,
-      moveSpeed: kind === 'rocketeer' ? 48 : kind === 'turret' ? 0 : 62,
+      moveSpeed: kind === 'zombie' ? 82 : kind === 'rocketeer' ? 48 : kind === 'turret' ? 0 : 62,
       fireRate: kind === 'rocketeer' ? 1400 : kind === 'turret' ? 1050 : 900,
       bulletSpeed: kind === 'rocketeer' ? 265 : kind === 'turret' ? 340 : 300,
-      damage: kind === 'rocketeer' ? 18 : kind === 'turret' ? 12 : 10,
+      damage: kind === 'zombie' ? 8 : kind === 'rocketeer' ? 18 : kind === 'turret' ? 12 : 10,
       nextFireAt: this.time.now + Phaser.Math.Between(250, 850),
       fireVisualUntil: 0,
       contactReadyAt: 0,
@@ -2751,12 +2769,27 @@ export class BattleScene extends Phaser.Scene {
       ? -1
       : Math.min(weapon.maxAmmo, (player.ammo[weaponKind] ?? 0) + weapon.pickupAmmo);
     player.weaponIndex = player.weapons.indexOf(weaponKind);
+    const respawnX = Number(pickup.getData('respawnX') ?? pickup.x);
+    const respawnY = Number(pickup.getData('respawnY') ?? pickup.y);
+    const stageId = String(pickup.getData('stageId') ?? this.stage?.id ?? '');
     const label = pickup.getData('labelObject') as Phaser.GameObjects.Text | undefined;
     label?.destroy();
     pickup.destroy();
+    this.scheduleWeaponPickupRespawn(weaponKind, respawnX, respawnY, stageId);
 
     this.showBanner(`${player.label} collected ${weapon.label} ammo ${this.getAmmoLabel(player, weaponKind)}`, player.accent);
     this.emitHud('live');
+  }
+
+  private scheduleWeaponPickupRespawn(kind: WeaponKind, x: number, y: number, stageId: string): void {
+    this.time.delayedCall(120000, () => {
+      if (!this.playing || this.stage?.id !== stageId) {
+        return;
+      }
+
+      this.createWeaponPickupCrate(kind, x, y, stageId);
+      this.showBanner(`${WEAPONS[kind].label} ammo crate restocked`, '#f3e6bf');
+    });
   }
 
   private handleHealthPickup(playerObject: Phaser.GameObjects.GameObject, pickupObject: Phaser.GameObjects.GameObject): void {
@@ -2899,7 +2932,7 @@ export class BattleScene extends Phaser.Scene {
       ease: 'Quad.easeOut',
       onComplete: () => enemy.sprite.destroy(),
     });
-    this.director.addScore(enemy.kind === 'turret' ? 180 : enemy.kind === 'rocketeer' ? 140 : 100);
+    this.director.addScore(enemy.kind === 'zombie' ? 45 : enemy.kind === 'turret' ? 180 : enemy.kind === 'rocketeer' ? 140 : 100);
 
     const encounter = this.encounterStates.find((state) => state.config.id === enemy.encounterId);
     if (encounter) {

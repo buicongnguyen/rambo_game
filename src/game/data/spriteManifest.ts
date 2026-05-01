@@ -64,7 +64,8 @@ export function getStageThemeById(stageId: string): StageThemeId {
 }
 
 export function getEnemyTextureKey(theme: StageThemeId, kind: EnemyKind, action: 'stand' | 'fire'): string {
-  return `enemy-${theme}-${kind}-${action}`;
+  const textureKind = kind === 'zombie' ? 'rifleman' : kind;
+  return `enemy-${theme}-${textureKind}-${action}`;
 }
 
 export function getBossTextureKey(kind: BossKind): string {
