@@ -573,6 +573,7 @@ export class BattleScene extends Phaser.Scene {
     this.createTerrainZones(this.stage);
     this.createBulletEffectZones(this.stage);
     this.createObstacles(this.stage);
+    this.createStageBoundaryWalls(this.stage);
     this.createBattlefieldCover(this.stage);
     this.createWeaponPickups(this.stage);
     this.createHealthPickups(this.stage);
@@ -639,6 +640,32 @@ export class BattleScene extends Phaser.Scene {
       this.physics.add.existing(rect, true);
       this.obstacleBodies.push(rect);
     }
+  }
+
+  private createStageBoundaryWalls(stage: StageConfig): void {
+    const thickness = 28;
+    const walls = [
+      { x: stage.worldWidth * 0.5, y: thickness * 0.5, width: stage.worldWidth, height: thickness, label: 'TOP WALL' },
+      { x: stage.worldWidth * 0.5, y: stage.worldHeight - thickness * 0.5, width: stage.worldWidth, height: thickness, label: 'BOTTOM WALL' },
+      { x: thickness * 0.5, y: stage.worldHeight * 0.5, width: thickness, height: stage.worldHeight, label: 'LEFT WALL' },
+      { x: stage.worldWidth - thickness * 0.5, y: stage.worldHeight * 0.5, width: thickness, height: stage.worldHeight, label: 'RIGHT WALL' },
+    ];
+
+    for (const wall of walls) {
+      const rect = this.add.rectangle(wall.x, wall.y, wall.width, wall.height, 0x2c3527, 0.96);
+      rect.setDepth(8);
+      rect.setStrokeStyle(2, 0xf2d277, 0.58);
+      this.physics.add.existing(rect, true);
+      this.obstacleBodies.push(rect);
+    }
+
+    this.add.text(stage.worldWidth * 0.5, stage.worldHeight - thickness - 10, 'WALL - END OF PLAY AREA', {
+      fontFamily: 'Impact, Haettenschweiler, sans-serif',
+      fontSize: '24px',
+      color: '#fff2c4',
+      stroke: '#09100b',
+      strokeThickness: 5,
+    }).setOrigin(0.5).setDepth(9).setAlpha(0.76);
   }
 
   private createTerrainZones(stage: StageConfig): void {
@@ -1263,21 +1290,27 @@ export class BattleScene extends Phaser.Scene {
   private applyResponsiveCamera(): void {
     const width = Math.max(1, this.scale.width);
     const height = Math.max(1, this.scale.height);
+    const stage = this.stage ?? this.director.getSnapshot().currentStage;
     const portrait = height > width;
     const targetWidth = portrait ? 1000 : 1100;
     const minZoom = portrait ? 0.44 : 0.72;
-    const zoom = width > 960 && height > 620
+    const fitStageHeightZoom = portrait
+      ? Phaser.Math.Clamp(height / Math.max(1, stage.worldHeight - 16), minZoom, 1)
+      : minZoom;
+    const responsiveZoom = width > 960 && height > 620
       ? 1
       : Phaser.Math.Clamp(width / targetWidth, minZoom, 1);
+    const zoom = portrait
+      ? Math.max(responsiveZoom, fitStageHeightZoom)
+      : responsiveZoom;
 
     this.cameras.main.setZoom(zoom);
     this.baseCameraZoom = zoom;
-    const stage = this.stage ?? this.director.getSnapshot().currentStage;
     this.cameras.main.setBounds(
       0,
       0,
       stage.worldWidth,
-      Math.max(stage.worldHeight, this.getVisibleWorldHeight(zoom)),
+      stage.worldHeight,
     );
     this.layoutOverlayText();
   }
@@ -1680,10 +1713,17 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private setCameraZoomForViewRange(height: number): void {
+    const minPlayableZoom = this.getMinimumPlayableZoom();
     const targetZoom = height > 0
-      ? Math.max(0.42, this.baseCameraZoom - (height >= 3 ? 0.17 : 0.12))
+      ? Math.max(minPlayableZoom, this.baseCameraZoom - (height >= 3 ? 0.17 : 0.12))
       : this.baseCameraZoom;
     this.cameras.main.setZoom(Phaser.Math.Linear(this.cameras.main.zoom, targetZoom, 0.08));
+  }
+
+  private getMinimumPlayableZoom(): number {
+    const stage = this.stage ?? this.director.getSnapshot().currentStage;
+    const height = Math.max(1, this.scale.height);
+    return Math.min(1, Math.max(0.42, height / Math.max(1, stage.worldHeight - 16)));
   }
 
   private checkEncounterTriggers(): void {
