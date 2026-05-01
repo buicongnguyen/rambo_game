@@ -1425,6 +1425,7 @@ export class BattleScene extends Phaser.Scene {
       player.aim.copy(movement);
     } else {
       vehicleBody.setVelocity(0, 0);
+      player.aim.copy(this.getVehicleForward(vehicle));
     }
 
     player.sprite.setPosition(vehicle.body.x, vehicle.body.y);
@@ -1448,8 +1449,13 @@ export class BattleScene extends Phaser.Scene {
       this.updateJeepAutoShotgun(player, vehicle, time);
     } else {
       this.updateTankMissileSalvo(player, vehicle, time);
-      if (this.wasActionPressed(player, 'fire')) {
+      const firePressed = this.wasActionPressed(player, 'fire');
+      if (firePressed) {
         this.startTankMissileSalvo(player, vehicle, time);
+      }
+      if (this.isActionDown(player, 'fire') && time >= player.nextFireAt) {
+        player.aim.copy(this.getVehicleForward(vehicle));
+        this.firePlayerWeapon(player, time);
       }
     }
 
