@@ -1062,6 +1062,8 @@ export class BattleScene extends Phaser.Scene {
     const vehicles: Array<{ kind: VehicleKind; x: number; y: number }> = [
       { kind: 'jeep', x: Math.floor(stage.worldWidth * 0.16), y: stage.worldHeight * 0.5 + 92 },
       { kind: 'tank', x: Math.floor(stage.worldWidth * 0.63), y: stage.worldHeight * 0.5 + 210 },
+      { kind: 'jeep', x: Math.floor(stage.worldWidth * 0.78), y: stage.worldHeight * 0.5 - 170 },
+      { kind: 'tank', x: Math.floor(stage.worldWidth * 0.86), y: stage.worldHeight * 0.5 + 150 },
     ];
 
     for (const config of vehicles) {
