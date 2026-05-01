@@ -2204,7 +2204,6 @@ export class BattleScene extends Phaser.Scene {
     maxDistance: number,
     thresholdDegrees: number,
   ): { x: number; y: number } | undefined {
-    const threshold = Phaser.Math.DegToRad(thresholdDegrees);
     const aimAngle = direction.angle();
     let bestTarget: { x: number; y: number } | undefined;
     let bestScore = Number.POSITIVE_INFINITY;
@@ -2221,11 +2220,12 @@ export class BattleScene extends Phaser.Scene {
 
       const angle = Phaser.Math.Angle.Between(x, y, targetX, targetY);
       const angleDiff = Math.abs(Phaser.Math.Angle.Wrap(angle - aimAngle));
+      const threshold = this.getDistanceScaledAimAssistThreshold(thresholdDegrees, distance, maxDistance, radius);
       if (angleDiff > threshold) {
         return;
       }
 
-      const score = angleDiff * 10000 + distance;
+      const score = (angleDiff / Math.max(threshold, 0.001)) * 10000 + distance;
       if (score < bestScore) {
         bestScore = score;
         bestTarget = { x: targetX, y: targetY };
@@ -2243,6 +2243,19 @@ export class BattleScene extends Phaser.Scene {
     }
 
     return bestTarget;
+  }
+
+  private getDistanceScaledAimAssistThreshold(
+    baseThresholdDegrees: number,
+    distance: number,
+    maxDistance: number,
+    targetRadius: number,
+  ): number {
+    const assistFalloffRange = Math.max(180, Math.min(maxDistance, 720));
+    const closeDistance = Math.max(0, distance - targetRadius * 2);
+    const closeness = 1 - Phaser.Math.Clamp(closeDistance / assistFalloffRange, 0, 1);
+    const closeBonusDegrees = 14 * closeness;
+    return Phaser.Math.DegToRad(baseThresholdDegrees + closeBonusDegrees);
   }
 
   private findClearBulletStart(x: number, y: number, direction: Phaser.Math.Vector2): { x: number; y: number } {
