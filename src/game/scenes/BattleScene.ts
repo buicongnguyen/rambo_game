@@ -38,6 +38,8 @@ interface WeaponSpec {
   scaleY: number;
   splashRadius?: number;
   splashDamage?: number;
+  poisonRadius?: number;
+  poisonDamage?: number;
   pierceCount?: number;
   beamWidth?: number;
   dropStartRatio?: number;
@@ -53,7 +55,7 @@ interface BulletEffectZone {
 }
 
 type TerrainEffect = 'water' | 'high';
-type VehicleKind = 'jeep' | 'tank';
+type VehicleKind = 'jeep' | 'tank' | 'motorcycle';
 
 interface TerrainZone {
   bounds: Phaser.Geom.Rectangle;
@@ -76,6 +78,9 @@ interface VehicleUnit {
   nextWeaponFireAt: number;
   salvoShotsRemaining: number;
   nextSalvoFireAt: number;
+  baseTint: number;
+  brokenTint: number;
+  ammoLabel: string;
 }
 
 const WEAPONS: Record<WeaponKind, WeaponSpec> = {
@@ -243,6 +248,48 @@ const WEAPONS: Record<WeaponKind, WeaponSpec> = {
     scaleX: 1.45,
     scaleY: 1.05,
   },
+  throwBomb: {
+    kind: 'throwBomb',
+    label: 'Throw Bomb',
+    shortLabel: 'BMB',
+    tint: 0xffd16a,
+    fireRate: 720,
+    bulletSpeed: 270,
+    damage: 72,
+    maxDistance: 760,
+    maxAmmo: 14,
+    pickupAmmo: 7,
+    ammoCost: 1,
+    spread: 0,
+    pellets: 1,
+    scaleX: 2.35,
+    scaleY: 1.65,
+    splashRadius: 185,
+    splashDamage: 118,
+    dropStartRatio: 0.58,
+  },
+  poisonBomb: {
+    kind: 'poisonBomb',
+    label: 'Poison Bomb',
+    shortLabel: 'PSN',
+    tint: 0x8cff6a,
+    fireRate: 860,
+    bulletSpeed: 250,
+    damage: 42,
+    maxDistance: 700,
+    maxAmmo: 10,
+    pickupAmmo: 5,
+    ammoCost: 1,
+    spread: 0,
+    pellets: 1,
+    scaleX: 2.2,
+    scaleY: 1.55,
+    splashRadius: 125,
+    splashDamage: 48,
+    poisonRadius: 170,
+    poisonDamage: 22,
+    dropStartRatio: 0.52,
+  },
 };
 
 const DIFFICULTY_HEALTH: Record<DifficultyMode, number> = {
@@ -350,6 +397,7 @@ export class BattleScene extends Phaser.Scene {
   private stage?: StageConfig;
   private players: PlayerUnit[] = [];
   private enemies: EnemyUnit[] = [];
+  private bosses: BossUnit[] = [];
   private boss?: BossUnit;
   private encounterStates: EncounterState[] = [];
   private encounterCount = 0;
@@ -542,6 +590,7 @@ export class BattleScene extends Phaser.Scene {
     this.stage = snapshot.currentStage;
     this.players = [];
     this.enemies = [];
+    this.bosses = [];
     this.vehicles = [];
     this.boss = undefined;
     this.encounterStates = this.stage.encounters.map((config) => ({
@@ -999,15 +1048,20 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private createWeaponPickups(stage: StageConfig): void {
+    const stageNumber = this.getStageNumber(stage);
+    const yJitter = ((stageNumber % 3) - 1) * 34;
+    const xJitter = (stageNumber % 2 === 0 ? 1 : -1) * 38;
     const pickups: Array<{ kind: WeaponKind; x: number; y: number }> = [
-      { kind: 'shotgun', x: 390, y: stage.worldHeight * 0.5 },
-      { kind: 'flame', x: Math.floor(stage.worldWidth * 0.42), y: stage.worldHeight * 0.5 - 120 },
-      { kind: 'machineGun', x: Math.floor(stage.worldWidth * 0.46), y: stage.worldHeight * 0.5 + 80 },
-      { kind: 'sniper', x: Math.floor(stage.worldWidth * 0.52), y: stage.worldHeight * 0.5 + 120 },
-      { kind: 'explosiveArrow', x: Math.floor(stage.worldWidth * 0.58), y: stage.worldHeight * 0.5 - 150 },
-      { kind: 'missile', x: Math.floor(stage.worldWidth * 0.62), y: stage.worldHeight * 0.5 - 40 },
-      { kind: 'launcher', x: Math.floor(stage.worldWidth * 0.66), y: stage.worldHeight * 0.5 + 110 },
-      { kind: 'laser', x: Math.floor(stage.worldWidth * 0.73), y: stage.worldHeight * 0.5 - 130 },
+      { kind: 'shotgun', x: 390 + xJitter, y: stage.worldHeight * 0.5 + yJitter },
+      { kind: 'flame', x: Math.floor(stage.worldWidth * 0.4) - xJitter, y: stage.worldHeight * 0.5 - 128 - yJitter },
+      { kind: 'machineGun', x: Math.floor(stage.worldWidth * 0.45) + xJitter, y: stage.worldHeight * 0.5 + 96 + yJitter },
+      { kind: 'throwBomb', x: Math.floor(stage.worldWidth * 0.49) - xJitter, y: stage.worldHeight * 0.5 - 18 - yJitter },
+      { kind: 'sniper', x: Math.floor(stage.worldWidth * 0.53) + xJitter, y: stage.worldHeight * 0.5 + 130 - yJitter },
+      { kind: 'poisonBomb', x: Math.floor(stage.worldWidth * 0.57) - xJitter, y: stage.worldHeight * 0.5 - 178 + yJitter },
+      { kind: 'explosiveArrow', x: Math.floor(stage.worldWidth * 0.61) + xJitter, y: stage.worldHeight * 0.5 - 120 - yJitter },
+      { kind: 'missile', x: Math.floor(stage.worldWidth * 0.65) - xJitter, y: stage.worldHeight * 0.5 - 42 + yJitter },
+      { kind: 'launcher', x: Math.floor(stage.worldWidth * 0.69) + xJitter, y: stage.worldHeight * 0.5 + 122 - yJitter },
+      { kind: 'laser', x: Math.floor(stage.worldWidth * 0.76) - xJitter, y: stage.worldHeight * 0.5 - 126 + yJitter },
     ];
 
     for (const pickup of pickups) {
@@ -1049,15 +1103,19 @@ export class BattleScene extends Phaser.Scene {
       missile: 'M!',
       laser: 'Z',
       machineGun: 'M',
+      throwBomb: 'B',
+      poisonBomb: 'P',
     };
 
     return icons[kind];
   }
 
   private createHealthPickups(stage: StageConfig): void {
+    const stageNumber = this.getStageNumber(stage);
+    const offset = (stageNumber - 3) * 18;
     const pickups = [
-      { x: Math.floor(stage.worldWidth * 0.35), y: stage.worldHeight * 0.5 - 170 },
-      { x: Math.floor(stage.worldWidth * 0.72), y: stage.worldHeight * 0.5 + 150 },
+      { x: Math.floor(stage.worldWidth * (0.32 + (stageNumber % 3) * 0.025)), y: stage.worldHeight * 0.5 - 160 + offset },
+      { x: Math.floor(stage.worldWidth * (0.7 + (stageNumber % 2) * 0.035)), y: stage.worldHeight * 0.5 + 150 - offset },
     ];
 
     for (const pickup of pickups) {
@@ -1076,17 +1134,18 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private createVehicles(stage: StageConfig): void {
+    const stageNumber = this.getStageNumber(stage);
     const vehicles: Array<{ kind: VehicleKind; x: number; y: number }> = [
       { kind: 'jeep', x: Math.floor(stage.worldWidth * 0.16), y: stage.worldHeight * 0.5 + 92 },
+      { kind: 'motorcycle', x: Math.floor(stage.worldWidth * 0.3), y: stage.worldHeight * 0.5 - 150 + stageNumber * 10 },
       { kind: 'tank', x: Math.floor(stage.worldWidth * 0.63), y: stage.worldHeight * 0.5 + 210 },
       { kind: 'jeep', x: Math.floor(stage.worldWidth * 0.78), y: stage.worldHeight * 0.5 - 170 },
       { kind: 'tank', x: Math.floor(stage.worldWidth * 0.86), y: stage.worldHeight * 0.5 + 150 },
+      { kind: 'motorcycle', x: Math.floor(stage.worldWidth * 0.91), y: stage.worldHeight * 0.5 - 48 - stageNumber * 8 },
     ];
 
     for (const config of vehicles) {
-      const spec = config.kind === 'jeep'
-        ? { width: 74, height: 42, tint: 0x596334, hp: 5, speed: 300, label: 'JEEP' }
-        : { width: 92, height: 54, tint: 0x53606a, hp: 18, speed: 230, label: 'TANK' };
+      const spec = this.getVehicleSpec(config.kind);
       const position = this.findOpenCoverSpot(config.x, config.y, spec.width, spec.height, stage, 18) ?? config;
       const body = this.add.rectangle(position.x, position.y, spec.width, spec.height, spec.tint, 0.96);
       body.setDepth(10);
@@ -1122,14 +1181,44 @@ export class BattleScene extends Phaser.Scene {
         maxHp: spec.hp,
         speed: spec.speed,
         active: true,
-        weaponShotsRemaining: config.kind === 'jeep' ? 20 : 5,
+        weaponShotsRemaining: spec.weaponShots,
         nextWeaponFireAt: 0,
         salvoShotsRemaining: 0,
         nextSalvoFireAt: 0,
+        baseTint: spec.tint,
+        brokenTint: spec.brokenTint,
+        ammoLabel: spec.ammoLabel,
       };
       body.setData('vehicle', vehicle);
       this.vehicles.push(vehicle);
     }
+  }
+
+  private getStageNumber(stage: StageConfig): number {
+    const match = stage.name.match(/\d+/);
+    return match ? Number(match[0]) : 1;
+  }
+
+  private getVehicleSpec(kind: VehicleKind): {
+    width: number;
+    height: number;
+    tint: number;
+    brokenTint: number;
+    hp: number;
+    speed: number;
+    label: string;
+    weaponShots: number;
+    ammoLabel: string;
+  } {
+    if (kind === 'motorcycle') {
+      return { width: 62, height: 28, tint: 0x7a3e28, brokenTint: 0x2d211b, hp: 2, speed: 360, label: 'BIKE', weaponShots: 0, ammoLabel: 'FAST' };
+    }
+
+    if (kind === 'jeep') {
+      return { width: 74, height: 42, tint: 0x596334, brokenTint: 0x2d2a25, hp: 5, speed: 300, label: 'JEEP', weaponShots: 20, ammoLabel: 'SG' };
+    }
+
+    return { width: 92, height: 54, tint: 0x53606a, brokenTint: 0x2d2a25, hp: 18, speed: 230, label: 'TANK', weaponShots: 5, ammoLabel: 'MSL' };
   }
 
   private createPlayers(playerCount: 1 | 2, difficulty: DifficultyMode): void {
@@ -1183,6 +1272,8 @@ export class BattleScene extends Phaser.Scene {
           missile: 0,
           laser: 0,
           machineGun: 0,
+          throwBomb: 0,
+          poisonBomb: 0,
         },
         aim: new Phaser.Math.Vector2(1, 0),
         jumpVector: new Phaser.Math.Vector2(1, 0),
@@ -1471,7 +1562,11 @@ export class BattleScene extends Phaser.Scene {
 
     if (vehicle.kind === 'jeep') {
       this.updateJeepAutoShotgun(player, vehicle, time);
-    } else {
+      if (this.isActionDown(player, 'fire') && time >= player.nextFireAt) {
+        player.aim.copy(this.getVehicleForward(vehicle));
+        this.firePlayerWeapon(player, time);
+      }
+    } else if (vehicle.kind === 'tank') {
       this.updateTankMissileSalvo(player, vehicle, time);
       const firePressed = this.wasActionPressed(player, 'fire');
       if (firePressed) {
@@ -1481,6 +1576,9 @@ export class BattleScene extends Phaser.Scene {
         player.aim.copy(this.getVehicleForward(vehicle));
         this.firePlayerWeapon(player, time);
       }
+    } else if (this.isActionDown(player, 'fire') && time >= player.nextFireAt) {
+      player.aim.copy(this.getVehicleForward(vehicle));
+      this.firePlayerWeapon(player, time);
     }
 
     if (this.wasActionPressed(player, 'special') && time >= player.nextSpecialAt && player.bombs > 0) {
@@ -1546,9 +1644,9 @@ export class BattleScene extends Phaser.Scene {
       vehicle.label.setPosition(vehicle.body.x, vehicle.body.y - 4);
       vehicle.label.setRotation(vehicle.body.rotation);
       vehicle.hpLabel.setPosition(vehicle.body.x, vehicle.body.y + vehicle.body.height * 0.5 + 10);
-      const ammoLabel = vehicle.kind === 'jeep'
-        ? `SG ${Math.max(0, vehicle.weaponShotsRemaining)}`
-        : `MSL ${Math.max(0, vehicle.weaponShotsRemaining)}`;
+      const ammoLabel = vehicle.weaponShotsRemaining > 0
+        ? `${vehicle.ammoLabel} ${Math.max(0, vehicle.weaponShotsRemaining)}`
+        : vehicle.ammoLabel;
       vehicle.hpLabel.setText(`${Math.max(0, vehicle.hp)}/${vehicle.maxHp}  ${ammoLabel}`);
 
       if (!vehicle.driver) {
@@ -1588,6 +1686,8 @@ export class BattleScene extends Phaser.Scene {
         1.18,
         undefined,
         undefined,
+        undefined,
+        undefined,
         1,
         0.72,
         260,
@@ -1611,6 +1711,8 @@ export class BattleScene extends Phaser.Scene {
       1.8,
       235,
       150,
+      undefined,
+      undefined,
       1,
       0.84,
       420,
@@ -1731,11 +1833,23 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private updateBoss(time: number): void {
-    if (!this.boss || !this.boss.alive || !this.stage) {
+    if (!this.stage) {
       return;
     }
 
-    const boss = this.boss;
+    for (const boss of this.bosses) {
+      if (boss.alive) {
+        this.updateSingleBoss(boss, time);
+      }
+    }
+  }
+
+  private updateSingleBoss(boss: BossUnit, time: number): void {
+    const stage = this.stage;
+    if (!stage) {
+      return;
+    }
+
     const sprite = boss.sprite;
     const target = this.closestLivingPlayer(sprite.x, sprite.y);
     if (!target) {
@@ -1745,37 +1859,40 @@ export class BattleScene extends Phaser.Scene {
 
     const angle = Phaser.Math.Angle.Between(sprite.x, sprite.y, target.sprite.x, target.sprite.y);
     sprite.setRotation(angle);
+    const healthRatio = boss.health / boss.maxHealth;
+    const phaseBoost = healthRatio < 0.45 ? 1.22 : 1;
 
     if (boss.config.kind === 'gunship') {
-      if (sprite.x < this.stage.worldWidth - 470) {
+      if (sprite.x < stage.worldWidth - 470) {
         boss.direction = 1;
-      } else if (sprite.x > this.stage.worldWidth - 120) {
+      } else if (sprite.x > stage.worldWidth - 120) {
         boss.direction = -1;
       }
 
       const desiredY = 220 + Math.sin(time / 450) * 90;
-      sprite.setVelocity(boss.config.speed * boss.direction, Phaser.Math.Clamp((desiredY - sprite.y) * 2.2, -120, 120));
+      sprite.setVelocity(boss.config.speed * boss.direction * phaseBoost, Phaser.Math.Clamp((desiredY - sprite.y) * 2.2, -140, 140));
     } else if (boss.config.kind === 'barge') {
       if (sprite.y < 180) {
         boss.direction = 1;
-      } else if (sprite.y > this.stage.worldHeight - 180) {
+      } else if (sprite.y > stage.worldHeight - 180) {
         boss.direction = -1;
       }
 
-      sprite.setVelocity(Phaser.Math.Clamp((this.stage.worldWidth - 290 - sprite.x) * 0.2, -50, 50), boss.config.speed * boss.direction);
+      const sway = Math.sin(time / 360 + boss.config.x * 0.01) * 44;
+      sprite.setVelocity(Phaser.Math.Clamp((stage.worldWidth - 290 - sprite.x) * 0.2 + sway, -78, 78), boss.config.speed * boss.direction * phaseBoost);
     } else {
-      if (sprite.x < this.stage.worldWidth - 520) {
+      if (sprite.x < stage.worldWidth - 520) {
         boss.direction = 1;
-      } else if (sprite.x > this.stage.worldWidth - 120) {
+      } else if (sprite.x > stage.worldWidth - 120) {
         boss.direction = -1;
       }
 
-      sprite.setVelocity(boss.config.speed * boss.direction, Math.sin(time / 420) * 60);
+      sprite.setVelocity(boss.config.speed * boss.direction * phaseBoost, Math.sin(time / 420 + boss.config.y * 0.01) * (healthRatio < 0.45 ? 86 : 60));
     }
 
     if (time >= boss.nextFireAt) {
       this.fireBossPattern(boss, angle);
-      boss.nextFireAt = time + boss.config.fireRate;
+      boss.nextFireAt = time + boss.config.fireRate * (healthRatio < 0.45 ? 0.72 : 1);
       boss.fireVisualUntil = time + 360;
     }
 
@@ -2092,14 +2209,23 @@ export class BattleScene extends Phaser.Scene {
       return;
     }
 
-    const config = this.stage.boss;
+    const configs = this.stage.bosses?.length ? this.stage.bosses : [this.stage.boss];
+    configs.forEach((config, index) => this.spawnSingleBoss(config, index));
+    this.boss = this.bosses.find((boss) => boss.alive);
+    this.bossSpawned = true;
+    const names = configs.map((config) => config.name).join(' + ');
+    this.activeEncounterLabel = `Boss inbound: ${names}`;
+    this.showBanner(`Boss lock: ${names}`, '#ffab7b');
+  }
+
+  private spawnSingleBoss(config: BossConfig, index: number): void {
     const sprite = this.physics.add.sprite(config.x, config.y, getBossTextureKey(config.kind), 0);
     sprite.setDepth(13);
     sprite.setCollideWorldBounds(true);
     this.configureBody(sprite, 72, 40);
     sprite.setFrame(0);
 
-    this.boss = {
+    const boss: BossUnit = {
       config,
       sprite,
       health: config.health,
@@ -2109,15 +2235,13 @@ export class BattleScene extends Phaser.Scene {
       nextSummonAt: this.time.now + (config.summonEveryMs ?? 999999),
       fireVisualUntil: 0,
       contactReadyAt: 0,
-      direction: -1,
+      direction: index % 2 === 0 ? -1 : 1,
     };
 
     sprite.setData('actorKind', 'boss');
-    sprite.setData('actor', this.boss);
+    sprite.setData('actor', boss);
     this.bossGroup?.add(sprite);
-    this.bossSpawned = true;
-    this.activeEncounterLabel = `Boss inbound: ${config.name}`;
-    this.showBanner(`Boss lock: ${config.name}`, '#ffab7b');
+    this.bosses.push(boss);
   }
 
   private firePlayerWeapon(player: PlayerUnit, time: number): void {
@@ -2170,6 +2294,8 @@ export class BattleScene extends Phaser.Scene {
         weapon.scaleY,
         weapon.splashRadius,
         weapon.splashDamage,
+        weapon.poisonRadius,
+        weapon.poisonDamage,
         weapon.pierceCount,
         weapon.dropStartRatio,
         weapon.tracerDistance,
@@ -2256,8 +2382,10 @@ export class BattleScene extends Phaser.Scene {
       }
     }
 
-    if (this.boss?.alive) {
-      considerTarget(this.boss.sprite.x, this.boss.sprite.y, 64);
+    for (const boss of this.bosses) {
+      if (boss.alive) {
+        considerTarget(boss.sprite.x, boss.sprite.y, 64);
+      }
     }
 
     return bestTarget;
@@ -2272,7 +2400,7 @@ export class BattleScene extends Phaser.Scene {
     const assistFalloffRange = Math.max(180, Math.min(maxDistance, 720));
     const closeDistance = Math.max(0, distance - targetRadius * 2);
     const closeness = 1 - Phaser.Math.Clamp(closeDistance / assistFalloffRange, 0, 1);
-    const closeBonusDegrees = 14 * closeness;
+    const closeBonusDegrees = 25 * closeness;
     return Phaser.Math.DegToRad(baseThresholdDegrees + closeBonusDegrees);
   }
 
@@ -2401,8 +2529,10 @@ export class BattleScene extends Phaser.Scene {
       }
     }
 
-    if (this.boss && this.boss.alive && Phaser.Math.Distance.Between(player.sprite.x, player.sprite.y, this.boss.sprite.x, this.boss.sprite.y) < 260) {
-      this.damageBoss(this.boss, 60);
+    for (const boss of this.bosses) {
+      if (boss.alive && Phaser.Math.Distance.Between(player.sprite.x, player.sprite.y, boss.sprite.x, boss.sprite.y) < 260) {
+        this.damageBoss(boss, 60);
+      }
     }
   }
 
@@ -2418,6 +2548,8 @@ export class BattleScene extends Phaser.Scene {
     scaleY: number,
     splashRadius?: number,
     splashDamage?: number,
+    poisonRadius?: number,
+    poisonDamage?: number,
     pierceCount?: number,
     dropStartRatio?: number,
     tracerDistance?: number,
@@ -2435,6 +2567,8 @@ export class BattleScene extends Phaser.Scene {
     bullet.setData('damage', damage);
     bullet.setData('splashRadius', splashRadius ?? 0);
     bullet.setData('splashDamage', splashDamage ?? 0);
+    bullet.setData('poisonRadius', poisonRadius ?? 0);
+    bullet.setData('poisonDamage', poisonDamage ?? 0);
     bullet.setData('splashTint', tint);
     bullet.setData('pierceRemaining', pierceCount ?? 1);
     bullet.setData('hitTargets', []);
@@ -2512,11 +2646,15 @@ export class BattleScene extends Phaser.Scene {
       }
     }
 
-    if (this.boss?.alive) {
-      const distance = this.distanceToLineSegment(this.boss.sprite.x, this.boss.sprite.y, startX, startY, endX, endY);
+    for (const boss of this.bosses) {
+      if (!boss.alive) {
+        continue;
+      }
+
+      const distance = this.distanceToLineSegment(boss.sprite.x, boss.sprite.y, startX, startY, endX, endY);
       if (distance <= beamWidth * 0.5 + 42) {
-        this.createHitSpark(this.boss.sprite.x, this.boss.sprite.y, weapon.tint, `-${weapon.damage}`);
-        this.damageBoss(this.boss, weapon.damage);
+        this.createHitSpark(boss.sprite.x, boss.sprite.y, weapon.tint, `-${weapon.damage}`);
+        this.damageBoss(boss, weapon.damage);
       }
     }
   }
@@ -2620,8 +2758,10 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private fireBossPattern(boss: BossUnit, baseAngle: number): void {
+    const lowHealth = boss.health / boss.maxHealth < 0.45;
     if (boss.config.kind === 'gunship') {
-      for (const offset of [-0.3, -0.15, 0, 0.15, 0.3]) {
+      const offsets = lowHealth ? [-0.42, -0.28, -0.14, 0, 0.14, 0.28, 0.42] : [-0.3, -0.15, 0, 0.15, 0.3];
+      for (const offset of offsets) {
         this.fireEnemyBullet(
           boss.sprite.x + Math.cos(baseAngle) * 30,
           boss.sprite.y + Math.sin(baseAngle) * 30,
@@ -2635,8 +2775,9 @@ export class BattleScene extends Phaser.Scene {
     }
 
     if (boss.config.kind === 'barge') {
-      for (let step = 0; step < 6; step += 1) {
-        const angle = baseAngle - 0.35 + step * 0.14;
+      const shots = lowHealth ? 8 : 6;
+      for (let step = 0; step < shots; step += 1) {
+        const angle = baseAngle - 0.42 + step * (0.84 / Math.max(1, shots - 1));
         this.fireEnemyBullet(
           boss.sprite.x + Math.cos(angle) * 28,
           boss.sprite.y + Math.sin(angle) * 28,
@@ -2649,7 +2790,8 @@ export class BattleScene extends Phaser.Scene {
       return;
     }
 
-    for (const offset of [-0.18, 0, 0.18]) {
+    const tankOffsets = lowHealth ? [-0.32, -0.16, 0, 0.16, 0.32] : [-0.18, 0, 0.18];
+    for (const offset of tankOffsets) {
       const angle = baseAngle + offset;
       this.fireEnemyBullet(
         boss.sprite.x + Math.cos(angle) * 34,
@@ -2850,10 +2992,10 @@ export class BattleScene extends Phaser.Scene {
     }
 
     vehicle.hp -= amount;
-    vehicle.body.setFillStyle(vehicle.kind === 'jeep' ? 0x6f5a34 : 0x6f7882, 0.96);
+    vehicle.body.setFillStyle(0xf0d36b, 0.96);
     this.time.delayedCall(75, () => {
       if (vehicle.active) {
-        vehicle.body.setFillStyle(vehicle.kind === 'jeep' ? 0x596334 : 0x53606a, 0.96);
+        vehicle.body.setFillStyle(vehicle.baseTint, 0.96);
       }
     });
 
@@ -2868,10 +3010,10 @@ export class BattleScene extends Phaser.Scene {
     }
     vehicle.driver = undefined;
     (vehicle.body.body as Phaser.Physics.Arcade.Body).enable = false;
-    vehicle.body.setFillStyle(0x2d2a25, 0.74);
+    vehicle.body.setFillStyle(vehicle.brokenTint, 0.74);
     vehicle.label.setText('BROKEN');
     vehicle.hpLabel.setText('0');
-    this.createExplosion(vehicle.body.x, vehicle.body.y, vehicle.kind === 'tank' ? 95 : 70, vehicle.kind === 'tank' ? 55 : 35, 0xff8a4a);
+    this.createExplosion(vehicle.body.x, vehicle.body.y, vehicle.kind === 'tank' ? 95 : vehicle.kind === 'jeep' ? 70 : 48, vehicle.kind === 'tank' ? 55 : vehicle.kind === 'jeep' ? 35 : 20, 0xff8a4a);
   }
 
   private handleEnemyContact(playerObject: Phaser.GameObjects.GameObject, enemyObject: Phaser.GameObjects.GameObject): void {
@@ -2950,10 +3092,17 @@ export class BattleScene extends Phaser.Scene {
 
     boss.alive = false;
     boss.sprite.destroy();
-    this.playing = false;
     this.director.addScore(1000);
     this.activeEncounterLabel = `${boss.config.name} destroyed`;
-    this.showBanner('Boss down. Stage clear.', '#f5e4a1');
+    this.boss = this.bosses.find((candidate) => candidate.alive);
+    if (this.boss) {
+      this.showBanner(`${boss.config.name} down. ${this.boss.config.name} remains.`, '#f5e4a1');
+      this.emitHud('live');
+      return;
+    }
+
+    this.playing = false;
+    this.showBanner('Bosses down. Stage clear.', '#f5e4a1');
     this.cameras.main.shake(240, 0.008);
     this.physics.pause();
 
@@ -3212,6 +3361,12 @@ export class BattleScene extends Phaser.Scene {
       this.createExplosion(x, y, splashRadius, splashDamage, splashTint);
     }
 
+    const poisonRadius = Number(bullet.getData('poisonRadius') ?? 0);
+    const poisonDamage = Number(bullet.getData('poisonDamage') ?? 0);
+    if (poisonRadius > 0 && poisonDamage > 0) {
+      this.createPoisonCloud(x, y, poisonRadius, poisonDamage, splashTint);
+    }
+
     this.dropBullet(bullet);
   }
 
@@ -3245,13 +3400,53 @@ export class BattleScene extends Phaser.Scene {
       }
     }
 
-    if (this.boss?.alive) {
-      const distance = Phaser.Math.Distance.Between(x, y, this.boss.sprite.x, this.boss.sprite.y);
+    for (const boss of this.bosses) {
+      if (!boss.alive) {
+        continue;
+      }
+
+      const distance = Phaser.Math.Distance.Between(x, y, boss.sprite.x, boss.sprite.y);
       if (distance <= radius) {
         const falloff = Phaser.Math.Clamp(1 - distance / Math.max(radius, 1), 0.25, 1);
-        this.createHitSpark(this.boss.sprite.x, this.boss.sprite.y, tint, `-${Math.ceil(damage * falloff)}`);
-        this.damageBoss(this.boss, Math.ceil(damage * falloff));
+        this.createHitSpark(boss.sprite.x, boss.sprite.y, tint, `-${Math.ceil(damage * falloff)}`);
+        this.damageBoss(boss, Math.ceil(damage * falloff));
       }
+    }
+  }
+
+  private createPoisonCloud(x: number, y: number, radius: number, damage: number, tint: number): void {
+    const cloud = this.add.image(x, y, 'blast-circle');
+    cloud.setTint(tint);
+    cloud.setAlpha(0.34);
+    cloud.setDepth(15);
+    cloud.setScale(radius / 16);
+    cloud.setBlendMode(Phaser.BlendModes.ADD);
+
+    this.tweens.add({
+      targets: cloud,
+      alpha: 0,
+      scale: radius / 8,
+      duration: 2200,
+      ease: 'Sine.easeOut',
+      onComplete: () => cloud.destroy(),
+    });
+
+    for (let pulse = 0; pulse < 4; pulse += 1) {
+      this.time.delayedCall(pulse * 430, () => {
+        for (const enemy of this.enemies) {
+          if (enemy.alive && Phaser.Math.Distance.Between(x, y, enemy.sprite.x, enemy.sprite.y) <= radius) {
+            this.createHitSpark(enemy.sprite.x, enemy.sprite.y, tint, `-${damage}`);
+            this.damageEnemy(enemy, damage);
+          }
+        }
+
+        for (const boss of this.bosses) {
+          if (boss.alive && Phaser.Math.Distance.Between(x, y, boss.sprite.x, boss.sprite.y) <= radius + 36) {
+            this.createHitSpark(boss.sprite.x, boss.sprite.y, tint, `-${Math.ceil(damage * 0.7)}`);
+            this.damageBoss(boss, Math.ceil(damage * 0.7));
+          }
+        }
+      });
     }
   }
 
@@ -3324,10 +3519,13 @@ export class BattleScene extends Phaser.Scene {
     const clearedEncounters = this.encounterStates.filter((state) => state.cleared).length;
     const totalEncounters = this.encounterStates.length || stage.encounters.length;
     const progressText = this.bossSpawned
-      ? this.boss?.alive
+      ? this.bosses.some((boss) => boss.alive)
         ? 'Boss engaged'
         : 'Stage complete'
       : `${clearedEncounters}/${totalEncounters} kill zones cleared`;
+    const livingBosses = this.bosses.filter((boss) => boss.alive);
+    const bossHealth = livingBosses.reduce((sum, boss) => sum + boss.health, 0);
+    const bossMaxHealth = livingBosses.reduce((sum, boss) => sum + boss.maxHealth, 0);
 
     this.pushHud({
       phase,
@@ -3354,11 +3552,11 @@ export class BattleScene extends Phaser.Scene {
           active: WEAPONS[weaponKind].kind === this.getCurrentWeapon(player).kind,
         })),
       })),
-      boss: this.boss && this.boss.alive
+      boss: livingBosses.length > 0
         ? {
-            name: this.boss.config.name,
-            health: this.boss.health,
-            maxHealth: this.boss.maxHealth,
+            name: livingBosses.map((boss) => boss.config.name).join(' + '),
+            health: bossHealth,
+            maxHealth: bossMaxHealth,
           }
         : undefined,
     });

@@ -2,7 +2,7 @@ export type SessionPhase = 'menu' | 'playing' | 'intermission' | 'gameover' | 'v
 export type EnemyKind = 'rifleman' | 'rocketeer' | 'turret' | 'zombie';
 export type BossKind = 'gunship' | 'barge' | 'tank';
 export type StageThemeId = 'emerald' | 'river' | 'blacksite';
-export type WeaponKind = 'rifle' | 'shotgun' | 'flame' | 'launcher' | 'sniper' | 'explosiveArrow' | 'missile' | 'laser' | 'machineGun';
+export type WeaponKind = 'rifle' | 'shotgun' | 'flame' | 'launcher' | 'sniper' | 'explosiveArrow' | 'missile' | 'laser' | 'machineGun' | 'throwBomb' | 'poisonBomb';
 export type DifficultyMode = 'easy' | 'normal' | 'hard' | 'extreme';
 
 export interface StagePalette {
@@ -63,6 +63,7 @@ export interface StageConfig {
   obstacles: ObstacleConfig[];
   encounters: EncounterConfig[];
   boss: BossConfig;
+  bosses?: BossConfig[];
 }
 
 export interface PlayerStatus {
