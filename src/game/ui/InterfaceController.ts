@@ -60,6 +60,7 @@ export class InterfaceController {
       objective: fallbackStage.objective,
       encounterLabel: 'Awaiting deployment order',
       progressText: 'Standby',
+      enemyCount: { alive: 0, total: fallbackStage.encounters.reduce((sum, encounter) => sum + encounter.enemies.length, 0) },
       totalScore: this.sessionSnapshot.totalScore,
       players: [],
     };
@@ -100,7 +101,8 @@ export class InterfaceController {
       <div class="hud-block hud-right">
         <div class="status-chip">
           <span>Stage ${hud.stageIndex}/${hud.totalStages}</span>
-          <strong>${hud.progressText}</strong>
+          <strong>${hud.progressText} - Enemies ${hud.enemyCount.alive}/${hud.enemyCount.total}</strong>
+          <span>Enemies left in stage</span>
           <span>${hud.encounterLabel}</span>
         </div>
         ${hud.boss ? `
@@ -174,10 +176,10 @@ export class InterfaceController {
 
   private renderDifficultySelector(): string {
     const modes: Array<{ id: DifficultyMode; label: string; hp: number }> = [
-      { id: 'easy', label: 'Easy', hp: 800 },
-      { id: 'normal', label: 'Normal', hp: 200 },
-      { id: 'hard', label: 'Hard', hp: 100 },
-      { id: 'extreme', label: 'Extreme', hp: 50 },
+      { id: 'easy', label: 'Easy', hp: 1000 },
+      { id: 'normal', label: 'Normal', hp: 400 },
+      { id: 'hard', label: 'Hard', hp: 200 },
+      { id: 'extreme', label: 'Extreme', hp: 100 },
     ];
 
     return `

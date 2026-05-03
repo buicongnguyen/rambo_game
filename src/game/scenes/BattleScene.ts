@@ -293,10 +293,10 @@ const WEAPONS: Record<WeaponKind, WeaponSpec> = {
 };
 
 const DIFFICULTY_HEALTH: Record<DifficultyMode, number> = {
-  easy: 800,
-  normal: 200,
-  hard: 100,
-  extreme: 50,
+  easy: 1000,
+  normal: 400,
+  hard: 200,
+  extreme: 100,
 };
 
 interface PlayerUnit {
@@ -1796,6 +1796,18 @@ export class BattleScene extends Phaser.Scene {
           this.createHitSpark(target.sprite.x, target.sprite.y, 0x9cff8a, '-bite');
           this.damagePlayer(target, enemy.damage);
         }
+      } else if (enemy.kind === 'scout') {
+        const desiredRange = 260;
+        const advance = distance > desiredRange ? 0.86 : distance < desiredRange * 0.55 ? -0.42 : 0;
+        const strafe = Math.sin(time / 360 + enemy.behaviorOffset) * 0.62;
+        const side = new Phaser.Math.Vector2(-direction.y, direction.x).scale(strafe);
+        const move = direction.clone().scale(advance).add(side);
+        if (move.lengthSq() > 0) {
+          move.normalize();
+          enemy.sprite.setVelocity(move.x * enemy.moveSpeed, move.y * enemy.moveSpeed);
+        } else {
+          enemy.sprite.setVelocity(0, 0);
+        }
       } else if (enemy.kind === 'turret') {
         enemy.sprite.setVelocity(0, 0);
       } else {
@@ -1812,17 +1824,21 @@ export class BattleScene extends Phaser.Scene {
         }
       }
 
-      const fireRange = enemy.kind === 'rocketeer' ? 470 : 360;
+      const fireRange = enemy.kind === 'rocketeer' ? 470 : enemy.kind === 'scout' ? 430 : 360;
       if (enemy.kind !== 'zombie' && distance <= fireRange && time >= enemy.nextFireAt) {
-        const spread = enemy.kind === 'rocketeer' ? 0.12 : 0.05;
-        this.fireEnemyBullet(
-          enemy.sprite.x + direction.x * 14,
-          enemy.sprite.y + direction.y * 14,
-          direction.clone().rotate(Phaser.Math.FloatBetween(-spread, spread)),
-          enemy.bulletSpeed,
-          enemy.damage,
-          enemy.kind === 'rocketeer' ? 0xff9359 : 0xff5b4a,
-        );
+        if (enemy.kind === 'scout') {
+          this.fireEnemyPoisonDart(enemy, direction);
+        } else {
+          const spread = enemy.kind === 'rocketeer' ? 0.12 : 0.05;
+          this.fireEnemyBullet(
+            enemy.sprite.x + direction.x * 14,
+            enemy.sprite.y + direction.y * 14,
+            direction.clone().rotate(Phaser.Math.FloatBetween(-spread, spread)),
+            enemy.bulletSpeed,
+            enemy.damage,
+            enemy.kind === 'rocketeer' ? 0xff9359 : 0xff5b4a,
+          );
+        }
         enemy.nextFireAt = time + enemy.fireRate;
         enemy.fireVisualUntil = time + 200;
       }
@@ -1919,8 +1935,8 @@ export class BattleScene extends Phaser.Scene {
         continue;
       }
 
-      const range = enemy.kind === 'zombie' ? 210 : enemy.kind === 'rocketeer' ? 470 : enemy.kind === 'turret' ? 420 : 360;
-      const halfAngle = enemy.kind === 'zombie' ? 0.62 : enemy.kind === 'turret' ? 0.3 : 0.42;
+      const range = enemy.kind === 'zombie' ? 210 : enemy.kind === 'scout' ? 430 : enemy.kind === 'rocketeer' ? 470 : enemy.kind === 'turret' ? 420 : 360;
+      const halfAngle = enemy.kind === 'zombie' ? 0.62 : enemy.kind === 'scout' ? 0.52 : enemy.kind === 'turret' ? 0.3 : 0.42;
       const angle = enemy.sprite.rotation;
       const leftX = enemy.sprite.x + Math.cos(angle - halfAngle) * range;
       const leftY = enemy.sprite.y + Math.sin(angle - halfAngle) * range;
@@ -2154,21 +2170,24 @@ export class BattleScene extends Phaser.Scene {
     if (kind === 'zombie') {
       sprite.setScale(0.84);
       sprite.setTint(0x9bdc73);
+    } else if (kind === 'scout') {
+      sprite.setScale(0.72);
+      sprite.setTint(0x93ffcb);
     }
-    this.configureBody(sprite, kind === 'turret' ? 20 : kind === 'zombie' ? 13 : 16, 14);
+    this.configureBody(sprite, kind === 'turret' ? 20 : kind === 'zombie' || kind === 'scout' ? 13 : 16, 14);
 
     const enemy: EnemyUnit = {
       id,
       kind,
       theme,
       sprite,
-      health: kind === 'zombie' ? 28 : kind === 'turret' ? 130 : kind === 'rocketeer' ? 85 : 50,
-      maxHealth: kind === 'zombie' ? 28 : kind === 'turret' ? 130 : kind === 'rocketeer' ? 85 : 50,
+      health: kind === 'scout' ? 24 : kind === 'zombie' ? 28 : kind === 'turret' ? 130 : kind === 'rocketeer' ? 85 : 50,
+      maxHealth: kind === 'scout' ? 24 : kind === 'zombie' ? 28 : kind === 'turret' ? 130 : kind === 'rocketeer' ? 85 : 50,
       alive: true,
-      moveSpeed: kind === 'zombie' ? 82 : kind === 'rocketeer' ? 48 : kind === 'turret' ? 0 : 62,
-      fireRate: kind === 'rocketeer' ? 1400 : kind === 'turret' ? 1050 : 900,
-      bulletSpeed: kind === 'rocketeer' ? 265 : kind === 'turret' ? 340 : 300,
-      damage: kind === 'zombie' ? 8 : kind === 'rocketeer' ? 18 : kind === 'turret' ? 12 : 10,
+      moveSpeed: kind === 'scout' ? 96 : kind === 'zombie' ? 82 : kind === 'rocketeer' ? 48 : kind === 'turret' ? 0 : 62,
+      fireRate: kind === 'scout' ? 1520 : kind === 'rocketeer' ? 1400 : kind === 'turret' ? 1050 : 900,
+      bulletSpeed: kind === 'scout' ? 280 : kind === 'rocketeer' ? 265 : kind === 'turret' ? 340 : 300,
+      damage: kind === 'scout' ? 14 : kind === 'zombie' ? 8 : kind === 'rocketeer' ? 18 : kind === 'turret' ? 12 : 10,
       nextFireAt: this.time.now + Phaser.Math.Between(250, 850),
       fireVisualUntil: 0,
       contactReadyAt: 0,
@@ -2799,6 +2818,29 @@ export class BattleScene extends Phaser.Scene {
     this.createBulletTracer(x, y, direction, tint, 180, 360);
   }
 
+  private fireEnemyPoisonDart(enemy: EnemyUnit, direction: Phaser.Math.Vector2): void {
+    const tint = 0x8cff6a;
+    const startX = enemy.sprite.x + direction.x * 14;
+    const startY = enemy.sprite.y + direction.y * 14;
+    const dartDirection = direction.clone().rotate(Phaser.Math.FloatBetween(-0.08, 0.08));
+    const bullet = this.physics.add.image(startX, startY, 'bullet-shell');
+    bullet.setTint(tint);
+    bullet.setDepth(15);
+    bullet.setScale(1.08, 0.82);
+    bullet.setBlendMode(Phaser.BlendModes.ADD);
+    bullet.setData('baseScaleX', bullet.scaleX);
+    bullet.setData('baseScaleY', bullet.scaleY);
+    bullet.setData('baseTint', tint);
+    this.configureBulletBody(bullet, dartDirection, enemy.bulletSpeed, 680, 0.88);
+    bullet.setRotation(dartDirection.angle());
+    bullet.setData('damage', enemy.damage);
+    bullet.setData('poison', true);
+    bullet.setData('expiry', this.time.now + 2300);
+    this.enemyBullets?.add(bullet);
+    this.createMuzzleFlash(startX, startY, dartDirection, tint);
+    this.createBulletTracer(startX, startY, dartDirection, tint, 120, 300);
+  }
+
   private configureBulletBody(
     bullet: Phaser.Physics.Arcade.Image,
     direction: Phaser.Math.Vector2,
@@ -2953,9 +2995,18 @@ export class BattleScene extends Phaser.Scene {
     }
 
     const damage = Number(bullet.getData('damage') ?? 10);
-    this.createHitSpark(player.sprite.x, player.sprite.y, 0xff5b4a);
+    const poison = Boolean(bullet.getData('poison'));
+    this.createHitSpark(player.sprite.x, player.sprite.y, poison ? 0x8cff6a : 0xff5b4a, poison ? '-poison' : undefined);
     this.dropBullet(bullet);
     this.damagePlayer(player, damage);
+    if (poison && player.alive) {
+      this.time.delayedCall(420, () => {
+        if (player.alive) {
+          this.createHitSpark(player.sprite.x, player.sprite.y, 0x8cff6a, '-tox');
+          this.damagePlayer(player, 4);
+        }
+      });
+    }
   }
 
   private handleWeaponPickup(playerObject: Phaser.GameObjects.GameObject, pickupObject: Phaser.GameObjects.GameObject): void {
@@ -3144,6 +3195,8 @@ export class BattleScene extends Phaser.Scene {
     if (encounter) {
       encounter.remaining = Math.max(0, encounter.remaining - 1);
     }
+
+    this.emitHud('live');
   }
 
   private damageBoss(boss: BossUnit, amount: number): void {
@@ -3582,6 +3635,14 @@ export class BattleScene extends Phaser.Scene {
     const stage = this.stage ?? this.getPreviewStage(snapshot);
     const clearedEncounters = this.encounterStates.filter((state) => state.cleared).length;
     const totalEncounters = this.encounterStates.length || stage.encounters.length;
+    const totalStageEnemies = stage.encounters.reduce((sum, encounter) => sum + encounter.enemies.length, 0);
+    const defeatedEnemies = this.encounterStates.reduce((sum, state) => {
+      if (!state.triggered) {
+        return sum;
+      }
+      return sum + Math.max(0, state.config.enemies.length - state.remaining);
+    }, 0);
+    const remainingEnemies = Math.max(0, totalStageEnemies - defeatedEnemies);
     const progressText = this.bossSpawned
       ? this.bosses.some((boss) => boss.alive)
         ? 'Boss engaged'
@@ -3599,6 +3660,10 @@ export class BattleScene extends Phaser.Scene {
       objective: stage.objective,
       encounterLabel: this.activeEncounterLabel,
       progressText,
+      enemyCount: {
+        alive: remainingEnemies,
+        total: totalStageEnemies,
+      },
       totalScore: snapshot.totalScore,
       players: this.players.map((player) => ({
         id: player.id,

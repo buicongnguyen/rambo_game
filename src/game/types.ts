@@ -1,5 +1,5 @@
 export type SessionPhase = 'menu' | 'playing' | 'intermission' | 'gameover' | 'victory';
-export type EnemyKind = 'rifleman' | 'rocketeer' | 'turret' | 'zombie';
+export type EnemyKind = 'rifleman' | 'rocketeer' | 'turret' | 'zombie' | 'scout';
 export type BossKind = 'gunship' | 'barge' | 'tank';
 export type StageThemeId = 'emerald' | 'river' | 'blacksite';
 export type WeaponKind = 'rifle' | 'shotgun' | 'flame' | 'launcher' | 'sniper' | 'explosiveArrow' | 'missile' | 'laser' | 'machineGun' | 'throwBomb' | 'poisonBomb';
@@ -97,6 +97,10 @@ export interface HudSnapshot {
   objective: string;
   encounterLabel: string;
   progressText: string;
+  enemyCount: {
+    alive: number;
+    total: number;
+  };
   totalScore: number;
   players: PlayerStatus[];
   boss?: BossStatus;

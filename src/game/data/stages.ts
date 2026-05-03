@@ -41,6 +41,7 @@ export const STAGES: StageConfig[] = [
           { id: 'j1-r3', kind: 'rifleman', x: 680, y: 620 },
           { id: 'j1-r4', kind: 'rifleman', x: 760, y: 520 },
           { id: 'j1-t1', kind: 'turret', x: 830, y: 240 },
+          { id: 'j1-s1', kind: 'scout', x: 900, y: 430 },
         ],
       },
       {
@@ -54,6 +55,7 @@ export const STAGES: StageConfig[] = [
           { id: 'j2-r3', kind: 'rifleman', x: 1350, y: 250 },
           { id: 'j2-t1', kind: 'turret', x: 1430, y: 620 },
           { id: 'j2-r4', kind: 'rifleman', x: 1490, y: 540 },
+          { id: 'j2-s1', kind: 'scout', x: 1450, y: 360 },
         ],
       },
       {
@@ -123,6 +125,7 @@ export const STAGES: StageConfig[] = [
           { id: 'r1-r3', kind: 'rifleman', x: 760, y: 430 },
           { id: 'r1-h1', kind: 'rocketeer', x: 860, y: 290 },
           { id: 'r1-t1', kind: 'turret', x: 920, y: 610 },
+          { id: 'r1-s1', kind: 'scout', x: 980, y: 420 },
         ],
       },
       {
@@ -136,6 +139,7 @@ export const STAGES: StageConfig[] = [
           { id: 'r2-h1', kind: 'rocketeer', x: 1510, y: 280 },
           { id: 'r2-h2', kind: 'rocketeer', x: 1560, y: 690 },
           { id: 'r2-t1', kind: 'turret', x: 1640, y: 450 },
+          { id: 'r2-s1', kind: 'scout', x: 1480, y: 540 },
         ],
       },
       {
@@ -207,6 +211,7 @@ export const STAGES: StageConfig[] = [
           { id: 'b1-t1', kind: 'turret', x: 930, y: 250 },
           { id: 'b1-t2', kind: 'turret', x: 970, y: 680 },
           { id: 'b1-z1', kind: 'zombie', x: 1020, y: 520 },
+          { id: 'b1-s1', kind: 'scout', x: 1040, y: 360 },
         ],
       },
       {
@@ -222,6 +227,7 @@ export const STAGES: StageConfig[] = [
           { id: 'b2-t1', kind: 'turret', x: 1680, y: 450 },
           { id: 'b2-t2', kind: 'turret', x: 1730, y: 240 },
           { id: 'b2-z1', kind: 'zombie', x: 1620, y: 560 },
+          { id: 'b2-s1', kind: 'scout', x: 1740, y: 590 },
         ],
       },
       {
@@ -320,6 +326,7 @@ export const STAGES: StageConfig[] = [
           { id: 'd1-t1', kind: 'turret', x: 960, y: 690 },
           { id: 'd1-z1', kind: 'zombie', x: 850, y: 560 },
           { id: 'd1-z2', kind: 'zombie', x: 990, y: 480 },
+          { id: 'd1-s1', kind: 'scout', x: 1040, y: 330 },
         ],
       },
       {
@@ -334,6 +341,7 @@ export const STAGES: StageConfig[] = [
           { id: 'd2-t1', kind: 'turret', x: 1740, y: 650 },
           { id: 'd2-r3', kind: 'rifleman', x: 1810, y: 520 },
           { id: 'd2-z1', kind: 'zombie', x: 1560, y: 610 },
+          { id: 'd2-s1', kind: 'scout', x: 1780, y: 390 },
         ],
       },
       {
@@ -405,6 +413,7 @@ export const STAGES: StageConfig[] = [
           { id: 'f1-t1', kind: 'turret', x: 930, y: 250 },
           { id: 'f1-t2', kind: 'turret', x: 980, y: 710 },
           { id: 'f1-z1', kind: 'zombie', x: 880, y: 560 },
+          { id: 'f1-s1', kind: 'scout', x: 1030, y: 410 },
         ],
       },
       {
@@ -420,6 +429,7 @@ export const STAGES: StageConfig[] = [
           { id: 'f2-t1', kind: 'turret', x: 1850, y: 470 },
           { id: 'f2-z1', kind: 'zombie', x: 1600, y: 590 },
           { id: 'f2-z2', kind: 'zombie', x: 1800, y: 560 },
+          { id: 'f2-s1', kind: 'scout', x: 1870, y: 360 },
         ],
       },
       {
@@ -492,6 +502,7 @@ export const STAGES: StageConfig[] = [
           { id: 'z1-d', kind: 'zombie', x: 720, y: 540 },
           { id: 'z1-e', kind: 'zombie', x: 810, y: 330 },
           { id: 'z1-r1', kind: 'rifleman', x: 900, y: 680 },
+          { id: 'z1-s1', kind: 'scout', x: 950, y: 450 },
         ],
       },
       {
@@ -505,6 +516,7 @@ export const STAGES: StageConfig[] = [
           { id: 'z2-d', kind: 'zombie', x: 1400, y: 720 },
           { id: 'z2-e', kind: 'zombie', x: 1500, y: 460 },
           { id: 'z2-h1', kind: 'rocketeer', x: 1610, y: 300 },
+          { id: 'z2-s1', kind: 'scout', x: 1660, y: 550 },
         ],
       },
       {
