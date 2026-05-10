@@ -452,9 +452,14 @@ export class BattleScene extends Phaser.Scene {
   private healthPickups?: Phaser.Physics.Arcade.StaticGroup;
   private supplyCrates?: Phaser.Physics.Arcade.StaticGroup;
   private rescueBunkerGroup?: Phaser.Physics.Arcade.StaticGroup;
+  private obstacleGroup?: Phaser.Physics.Arcade.StaticGroup;
   private vehicleGroup?: Phaser.Physics.Arcade.Group;
   private vehicles: VehicleUnit[] = [];
   private obstacleBodies: Phaser.GameObjects.Rectangle[] = [];
+  private bulletTravelBounds = new Phaser.Geom.Rectangle();
+  private sightLine = new Phaser.Geom.Line();
+  private sightBounds = new Phaser.Geom.Rectangle();
+  private nextVisionConeDrawAt = 0;
   private bulletZones: BulletEffectZone[] = [];
   private terrainZones: TerrainZone[] = [];
   private spawnDoors = new Map<string, SpawnDoor>();
@@ -515,7 +520,7 @@ export class BattleScene extends Phaser.Scene {
     this.updateAllies(time);
     this.updateVehicles();
     this.updateEnemies(time);
-    this.drawEnemyVisionCones();
+    this.drawEnemyVisionCones(time);
     this.updateBoss(time);
     this.updateCameraAnchor();
     this.keepActorsInsideVisiblePlayfield();
@@ -648,6 +653,7 @@ export class BattleScene extends Phaser.Scene {
     this.allEncountersCleared = false;
     this.bossSpawned = false;
     this.hudTimestamp = 0;
+    this.nextVisionConeDrawAt = 0;
     this.spawnDoors.clear();
 
     this.children.removeAll();
@@ -673,8 +679,10 @@ export class BattleScene extends Phaser.Scene {
     this.healthPickups = this.physics.add.staticGroup();
     this.supplyCrates = this.physics.add.staticGroup();
     this.rescueBunkerGroup = this.physics.add.staticGroup();
+    this.obstacleGroup = this.physics.add.staticGroup();
     this.vehicleGroup = this.physics.add.group();
     this.obstacleBodies = [];
+    this.bulletTravelBounds.setTo(-80, -80, this.stage.worldWidth + 160, this.stage.worldHeight + 160);
     this.bulletZones = [];
     this.terrainZones = [];
     this.cameraTarget = this.add.zone(140, this.stage.worldHeight * 0.5, 4, 4);
@@ -750,8 +758,7 @@ export class BattleScene extends Phaser.Scene {
       );
       rect.setStrokeStyle(2, stage.palette.accent, 0.24);
       rect.setDepth(4);
-      this.physics.add.existing(rect, true);
-      this.obstacleBodies.push(rect);
+      this.registerObstacle(rect);
     }
   }
 
@@ -768,8 +775,7 @@ export class BattleScene extends Phaser.Scene {
       const rect = this.add.rectangle(wall.x, wall.y, wall.width, wall.height, 0x2c3527, 0.96);
       rect.setDepth(8);
       rect.setStrokeStyle(2, 0xf2d277, 0.58);
-      this.physics.add.existing(rect, true);
-      this.obstacleBodies.push(rect);
+      this.registerObstacle(rect);
     }
 
     this.add.text(stage.worldWidth * 0.5, stage.worldHeight - thickness - 10, 'WALL - END OF PLAY AREA', {
@@ -1209,23 +1215,25 @@ export class BattleScene extends Phaser.Scene {
     alpha: number,
     label?: string,
   ): Phaser.GameObjects.Rectangle {
-    const rect = this.add.rectangle(x, y, width, height, tint, alpha);
+    const rimPadding = 8;
+    const blockerWidth = width + rimPadding * 2;
+    const blockerHeight = height + rimPadding * 2;
+    const rect = this.add.rectangle(x, y, blockerWidth, blockerHeight, tint, alpha);
     rect.setDepth(5);
     const isConcrete = tint === 0x6f777b || tint === 0x777f86;
     const darkEdge = isConcrete ? 0x242b2f : 0x2a1b10;
     const lightEdge = isConcrete ? 0xb8c2c6 : 0xd1a56a;
     rect.setStrokeStyle(5, darkEdge, 0.62);
-    this.physics.add.existing(rect, true);
-    this.obstacleBodies.push(rect);
+    this.registerObstacle(rect);
 
-    this.add.rectangle(x + 6, y + 7, width * 0.98, height * 0.88, 0x000000, 0.18).setDepth(4);
-    const topBevel = this.add.rectangle(x, y - height * 0.5 + 4, Math.max(8, width - 8), 7, lightEdge, 0.42);
+    this.add.rectangle(x + 6, y + 7, blockerWidth * 0.98, blockerHeight * 0.88, 0x000000, 0.18).setDepth(4);
+    const topBevel = this.add.rectangle(x, y - blockerHeight * 0.5 + 4, Math.max(8, blockerWidth - 8), 7, lightEdge, 0.42);
     topBevel.setDepth(6);
-    const leftBevel = this.add.rectangle(x - width * 0.5 + 4, y, 7, Math.max(8, height - 8), lightEdge, 0.22);
+    const leftBevel = this.add.rectangle(x - blockerWidth * 0.5 + 4, y, 7, Math.max(8, blockerHeight - 8), lightEdge, 0.22);
     leftBevel.setDepth(6);
-    const bottomLip = this.add.rectangle(x, y + height * 0.5 - 4, Math.max(8, width - 8), 7, darkEdge, 0.42);
+    const bottomLip = this.add.rectangle(x, y + blockerHeight * 0.5 - 4, Math.max(8, blockerWidth - 8), 7, darkEdge, 0.42);
     bottomLip.setDepth(6);
-    const rightLip = this.add.rectangle(x + width * 0.5 - 4, y, 7, Math.max(8, height - 8), darkEdge, 0.34);
+    const rightLip = this.add.rectangle(x + blockerWidth * 0.5 - 4, y, 7, Math.max(8, blockerHeight - 8), darkEdge, 0.34);
     rightLip.setDepth(6);
     this.add.rectangle(x, y, Math.max(8, width - 18), Math.max(8, height - 18), 0xffffff, isConcrete ? 0.035 : 0.045).setDepth(5);
     this.add.rectangle(x - width * 0.18, y - height * 0.18, width * 0.46, Math.max(4, height * 0.16), 0xffffff, 0.08)
@@ -1262,8 +1270,7 @@ export class BattleScene extends Phaser.Scene {
     const trunk = this.add.rectangle(x, y + 10, 34, 66, 0x4c321e, 0.48);
     trunk.setDepth(5);
     trunk.setStrokeStyle(2, 0x2b1b11, 0.5);
-    this.physics.add.existing(trunk, true);
-    this.obstacleBodies.push(trunk);
+    this.registerObstacle(trunk);
 
     const canopyTint = stage.theme === 'river' ? 0x2d6d42 : 0x2f7b35;
     for (const [offsetX, offsetY, radius, alpha] of [[0, -24, 38, 0.82], [-27, -9, 27, 0.76], [27, -8, 28, 0.78], [-10, 12, 28, 0.72], [15, 12, 30, 0.72]] as const) {
@@ -1407,6 +1414,7 @@ export class BattleScene extends Phaser.Scene {
     body.setData('rescueBunkerId', id);
     this.physics.add.existing(body, true);
     this.rescueBunkerGroup?.add(body);
+    this.obstacleBodies.push(body);
 
     const roof = this.add.rectangle(x, y - 21, 86, 10, 0x263034, 0.92).setDepth(9);
     const door = this.add.rectangle(x - 23, y + 6, 18, 28, 0x10181a, 0.92).setDepth(9);
@@ -1762,20 +1770,33 @@ export class BattleScene extends Phaser.Scene {
     body.setOffset((sprite.width - width) * 0.5, (sprite.height - height) * 0.5);
   }
 
+  private registerObstacle(rect: Phaser.GameObjects.Rectangle): void {
+    this.physics.add.existing(rect, true);
+    this.obstacleGroup?.add(rect);
+    const body = rect.body as Phaser.Physics.Arcade.StaticBody | undefined;
+    body?.updateFromGameObject();
+    this.obstacleBodies.push(rect);
+  }
+
   private setupColliders(): void {
-    for (const obstacle of this.obstacleBodies) {
-      this.physics.add.collider(this.playerGroup!, obstacle);
-      this.physics.add.collider(this.allyGroup!, obstacle);
-      this.physics.add.collider(this.enemyGroup!, obstacle);
-      this.physics.add.collider(this.bossGroup!, obstacle);
-      this.physics.add.collider(this.vehicleGroup!, obstacle);
-      this.physics.add.collider(this.playerBullets!, obstacle, (bullet) => {
-        this.destroyBulletObject(bullet as Phaser.GameObjects.GameObject);
-      });
-      this.physics.add.collider(this.enemyBullets!, obstacle, (bullet) => {
-        this.destroyBulletObject(bullet as Phaser.GameObjects.GameObject);
-      });
-    }
+    const obstacles = this.obstacleGroup!;
+    this.physics.add.collider(this.playerGroup!, obstacles);
+    this.physics.add.collider(this.allyGroup!, obstacles);
+    this.physics.add.collider(this.enemyGroup!, obstacles);
+    this.physics.add.collider(this.bossGroup!, obstacles);
+    this.physics.add.collider(this.vehicleGroup!, obstacles);
+    this.physics.add.collider(this.playerBullets!, obstacles, (bullet) => {
+      this.destroyBulletObject(bullet as Phaser.GameObjects.GameObject);
+    });
+    this.physics.add.collider(this.enemyBullets!, obstacles, (bullet) => {
+      this.destroyBulletObject(bullet as Phaser.GameObjects.GameObject);
+    });
+    this.physics.add.collider(this.playerBullets!, this.rescueBunkerGroup!, (bullet) => {
+      this.destroyBulletObject(bullet as Phaser.GameObjects.GameObject);
+    });
+    this.physics.add.collider(this.enemyBullets!, this.rescueBunkerGroup!, (bullet) => {
+      this.destroyBulletObject(bullet as Phaser.GameObjects.GameObject);
+    });
 
     this.physics.add.overlap(this.playerBullets!, this.enemyGroup!, (bullet, enemy) => {
       this.handleEnemyHit(bullet as Phaser.GameObjects.GameObject, enemy as Phaser.GameObjects.GameObject);
@@ -2609,11 +2630,16 @@ export class BattleScene extends Phaser.Scene {
     this.syncBossVisuals(boss, time);
   }
 
-  private drawEnemyVisionCones(): void {
+  private drawEnemyVisionCones(time: number): void {
     if (!this.visionGraphics) {
       return;
     }
 
+    if (time < this.nextVisionConeDrawAt) {
+      return;
+    }
+
+    this.nextVisionConeDrawAt = time + 100;
     this.visionGraphics.clear();
     for (const enemy of this.enemies) {
       if (!enemy.alive || !enemy.sprite.active) {
@@ -4276,16 +4302,16 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private hasLineOfSight(fromX: number, fromY: number, toX: number, toY: number): boolean {
-    const sightLine = new Phaser.Geom.Line(fromX, fromY, toX, toY);
+    this.sightLine.setTo(fromX, fromY, toX, toY);
 
     for (const obstacle of this.obstacleBodies) {
       const bounds = obstacle.getBounds();
-      const expanded = new Phaser.Geom.Rectangle(bounds.x - 3, bounds.y - 3, bounds.width + 6, bounds.height + 6);
-      if (expanded.contains(fromX, fromY)) {
+      this.sightBounds.setTo(bounds.x - 3, bounds.y - 3, bounds.width + 6, bounds.height + 6);
+      if (this.sightBounds.contains(fromX, fromY)) {
         continue;
       }
 
-      if (Phaser.Geom.Intersects.LineToRectangle(sightLine, expanded)) {
+      if (Phaser.Geom.Intersects.LineToRectangle(this.sightLine, this.sightBounds)) {
         return false;
       }
     }
@@ -4326,6 +4352,7 @@ export class BattleScene extends Phaser.Scene {
       return;
     }
 
+    const travelBounds = this.getBulletTravelBounds();
     for (const child of group.getChildren()) {
       const bullet = child as Phaser.Physics.Arcade.Image;
       if (!bullet.active) {
@@ -4375,7 +4402,7 @@ export class BattleScene extends Phaser.Scene {
       if (
         time > expiry
         || traveled >= maxDistance
-        || !Phaser.Geom.Rectangle.Overlaps(this.getBulletTravelBounds(), bullet.getBounds())
+        || !Phaser.Geom.Rectangle.Overlaps(travelBounds, bullet.getBounds())
       ) {
         this.resolvePlayerBulletImpact(bullet, bullet.x, bullet.y);
       }
@@ -4383,8 +4410,7 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private getBulletTravelBounds(): Phaser.Geom.Rectangle {
-    const stage = this.stage ?? this.director.getSnapshot().currentStage;
-    return new Phaser.Geom.Rectangle(-80, -80, stage.worldWidth + 160, stage.worldHeight + 160);
+    return this.bulletTravelBounds;
   }
 
   private getBulletEffectZoneAt(x: number, y: number): BulletEffectZone | undefined {
