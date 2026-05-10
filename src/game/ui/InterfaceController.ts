@@ -124,7 +124,7 @@ export class InterfaceController {
         ` : ''}
         ${this.sessionSnapshot.phase === 'playing' ? `
           <button type="button" class="skip-stage-button" data-skip-stage>
-            Skip Stage
+            Skip Stage ${hud.stageIndex}
           </button>
         ` : ''}
         <div class="score-chip">

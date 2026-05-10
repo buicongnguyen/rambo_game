@@ -298,6 +298,16 @@ a {
   line-height: 1.1;
 }
 
+.touch-button span {
+  display: block;
+  margin-top: 3px;
+  font-family: 'Bahnschrift', 'Trebuchet MS', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #fff2c4;
+}
+
 .touch-button-fire {
   min-width: 98px;
   min-height: 98px;
@@ -313,6 +323,11 @@ a {
     radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.16), transparent 38%),
     linear-gradient(180deg, rgba(255, 132, 95, 0.28), rgba(90, 24, 20, 0.76));
   border-color: rgba(255, 132, 95, 0.28);
+}
+
+.touch-button-special[data-cooldown='true'] {
+  filter: saturate(0.7);
+  opacity: 0.82;
 }
 
 .touch-button[data-pressed='true'] {
@@ -898,6 +913,11 @@ a {
     font-size: 0.55rem;
   }
 
+  .touch-button span {
+    margin-top: 1px;
+    font-size: 0.44rem;
+  }
+
   .touch-rotate-hint {
     display: none;
   }
@@ -1055,6 +1075,10 @@ a {
 
   .touch-button strong {
     font-size: 0.44rem;
+  }
+
+  .touch-button span {
+    font-size: 0.36rem;
   }
 }
 

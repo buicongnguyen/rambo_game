@@ -1,6 +1,6 @@
 import { GameDirector } from '../core/GameDirector';
 import { VirtualGamepad, type GameAction } from '../core/VirtualGamepad';
-import type { SessionPhase } from '../types';
+import type { HudSnapshot, SessionPhase } from '../types';
 
 type TouchButtonAction = Extract<GameAction, 'crouch' | 'jump' | 'fire' | 'special'>;
 
@@ -13,6 +13,7 @@ export class TouchControlsOverlay {
   private readonly gamepad: VirtualGamepad;
   private readonly stickZone: HTMLElement;
   private readonly stickKnob: HTMLElement;
+  private readonly specialButton: HTMLButtonElement | null;
   private readonly buttonResetters: Array<() => void> = [];
   private readonly touchQuery = window.matchMedia('(hover: none), (pointer: coarse)');
   private stickPointerId: number | null = null;
@@ -58,6 +59,7 @@ export class TouchControlsOverlay {
 
     this.stickZone = stickZone;
     this.stickKnob = stickKnob;
+    this.specialButton = this.root.querySelector<HTMLButtonElement>('button[data-action="special"]');
 
     this.bindStick();
     this.bindButtons();
@@ -68,6 +70,23 @@ export class TouchControlsOverlay {
       this.currentPhase = snapshot.phase;
       this.applyVisibility();
     });
+  }
+
+  setHud(snapshot: HudSnapshot): void {
+    const player = snapshot.players[0];
+    if (!this.specialButton || !player) {
+      return;
+    }
+
+    const cooldownSeconds = Math.ceil((player.bombCooldownMs ?? 0) / 1000);
+    const detail = cooldownSeconds > 0
+      ? `CD ${cooldownSeconds}`
+      : `x${player.bombs}`;
+    this.specialButton.innerHTML = `
+      <strong>Bomb</strong>
+      <span>${detail}</span>
+    `;
+    this.specialButton.dataset.cooldown = cooldownSeconds > 0 ? 'true' : 'false';
   }
 
   private readonly syncVisibility = (): void => {

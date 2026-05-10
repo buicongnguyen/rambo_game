@@ -72,6 +72,7 @@ export interface PlayerStatus {
   health: number;
   maxHealth: number;
   bombs: number;
+  bombCooldownMs?: number;
   alive: boolean;
   accent: string;
   weapon?: string;

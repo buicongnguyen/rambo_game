@@ -48,12 +48,13 @@ if (!hudRoot || !overlayRoot || !intelRoot || !touchControlsRoot) {
 const director = new GameDirector();
 const virtualGamepad = new VirtualGamepad();
 const battleMusic = new BattleMusic();
+let touchControls: TouchControlsOverlay | undefined;
 const ui = new InterfaceController(
   { hudRoot, overlayRoot, intelRoot },
   director,
   { startMusic: () => battleMusic.start() },
 );
-new TouchControlsOverlay(touchControlsRoot, director, virtualGamepad);
+touchControls = new TouchControlsOverlay(touchControlsRoot, director, virtualGamepad);
 
 new Phaser.Game({
   type: Phaser.AUTO,
@@ -78,5 +79,8 @@ new Phaser.Game({
     pixelArt: false,
     antialias: true,
   },
-  scene: [new BattleScene(director, (snapshot) => ui.setHud(snapshot), virtualGamepad)],
+  scene: [new BattleScene(director, (snapshot) => {
+    ui.setHud(snapshot);
+    touchControls?.setHud(snapshot);
+  }, virtualGamepad)],
 });

@@ -1211,11 +1211,23 @@ export class BattleScene extends Phaser.Scene {
   ): Phaser.GameObjects.Rectangle {
     const rect = this.add.rectangle(x, y, width, height, tint, alpha);
     rect.setDepth(5);
-    rect.setStrokeStyle(2, 0xf0e1b6, 0.22);
+    const isConcrete = tint === 0x6f777b || tint === 0x777f86;
+    const darkEdge = isConcrete ? 0x242b2f : 0x2a1b10;
+    const lightEdge = isConcrete ? 0xb8c2c6 : 0xd1a56a;
+    rect.setStrokeStyle(5, darkEdge, 0.62);
     this.physics.add.existing(rect, true);
     this.obstacleBodies.push(rect);
 
-    this.add.rectangle(x + 5, y + 5, width * 0.92, height * 0.76, 0x000000, 0.1).setDepth(4);
+    this.add.rectangle(x + 6, y + 7, width * 0.98, height * 0.88, 0x000000, 0.18).setDepth(4);
+    const topBevel = this.add.rectangle(x, y - height * 0.5 + 4, Math.max(8, width - 8), 7, lightEdge, 0.42);
+    topBevel.setDepth(6);
+    const leftBevel = this.add.rectangle(x - width * 0.5 + 4, y, 7, Math.max(8, height - 8), lightEdge, 0.22);
+    leftBevel.setDepth(6);
+    const bottomLip = this.add.rectangle(x, y + height * 0.5 - 4, Math.max(8, width - 8), 7, darkEdge, 0.42);
+    bottomLip.setDepth(6);
+    const rightLip = this.add.rectangle(x + width * 0.5 - 4, y, 7, Math.max(8, height - 8), darkEdge, 0.34);
+    rightLip.setDepth(6);
+    this.add.rectangle(x, y, Math.max(8, width - 18), Math.max(8, height - 18), 0xffffff, isConcrete ? 0.035 : 0.045).setDepth(5);
     this.add.rectangle(x - width * 0.18, y - height * 0.18, width * 0.46, Math.max(4, height * 0.16), 0xffffff, 0.08)
       .setDepth(6)
       .setAngle(-3);
@@ -4624,6 +4636,7 @@ export class BattleScene extends Phaser.Scene {
         health: player.health,
         maxHealth: player.maxHealth,
         bombs: player.bombs,
+        bombCooldownMs: Math.max(0, Math.ceil(player.nextSpecialAt - this.time.now)),
         alive: player.alive,
         accent: player.accent,
         weapon: this.getCurrentWeapon(player).label,
