@@ -177,8 +177,8 @@ const WEAPONS: Record<WeaponKind, WeaponSpec> = {
     bulletSpeed: 860,
     damage: 150,
     maxDistance: 1900,
-    maxAmmo: 36,
-    pickupAmmo: 18,
+    maxAmmo: 72,
+    pickupAmmo: 36,
     ammoCost: 1,
     spread: 0,
     pellets: 1,
@@ -197,8 +197,8 @@ const WEAPONS: Record<WeaponKind, WeaponSpec> = {
     bulletSpeed: 330,
     damage: 80,
     maxDistance: 900,
-    maxAmmo: 24,
-    pickupAmmo: 12,
+    maxAmmo: 48,
+    pickupAmmo: 24,
     ammoCost: 1,
     spread: 0,
     pellets: 1,
@@ -450,9 +450,9 @@ export class BattleScene extends Phaser.Scene {
   private enemyBullets?: Phaser.Physics.Arcade.Group;
   private weaponPickups?: Phaser.Physics.Arcade.StaticGroup;
   private healthPickups?: Phaser.Physics.Arcade.StaticGroup;
+  private airStrikePickups?: Phaser.Physics.Arcade.StaticGroup;
   private supplyCrates?: Phaser.Physics.Arcade.StaticGroup;
   private rescueBunkerGroup?: Phaser.Physics.Arcade.StaticGroup;
-  private obstacleGroup?: Phaser.Physics.Arcade.StaticGroup;
   private vehicleGroup?: Phaser.Physics.Arcade.Group;
   private vehicles: VehicleUnit[] = [];
   private obstacleBodies: Phaser.GameObjects.Rectangle[] = [];
@@ -677,9 +677,9 @@ export class BattleScene extends Phaser.Scene {
     this.enemyBullets = this.physics.add.group();
     this.weaponPickups = this.physics.add.staticGroup();
     this.healthPickups = this.physics.add.staticGroup();
+    this.airStrikePickups = this.physics.add.staticGroup();
     this.supplyCrates = this.physics.add.staticGroup();
     this.rescueBunkerGroup = this.physics.add.staticGroup();
-    this.obstacleGroup = this.physics.add.staticGroup();
     this.vehicleGroup = this.physics.add.group();
     this.obstacleBodies = [];
     this.bulletTravelBounds.setTo(-80, -80, this.stage.worldWidth + 160, this.stage.worldHeight + 160);
@@ -697,6 +697,7 @@ export class BattleScene extends Phaser.Scene {
     this.createSupplyCrates(this.stage);
     this.createWeaponPickups(this.stage);
     this.createHealthPickups(this.stage);
+    this.createAirStrikePickups(this.stage);
     this.createVehicles(this.stage);
     this.createRescueBunkers(this.stage);
     this.visionGraphics = this.add.graphics();
@@ -758,6 +759,7 @@ export class BattleScene extends Phaser.Scene {
       );
       rect.setStrokeStyle(2, stage.palette.accent, 0.24);
       rect.setDepth(4);
+      rect.setData('vehiclePassableObstacle', true);
       this.registerObstacle(rect);
     }
   }
@@ -1065,9 +1067,9 @@ export class BattleScene extends Phaser.Scene {
     for (const encounter of stage.encounters) {
       encounter.enemies.forEach((spawn, index) => {
         const doorSide = index % 2 === 0 ? -1 : 1;
-        const concrete = spawn.kind === 'turret' || index % 4 === 3;
-        const width = concrete ? 86 : 72;
-        const height = concrete ? 36 : 52;
+        const bunker = spawn.kind === 'turret' || index % 4 === 3;
+        const width = bunker ? 76 : 50;
+        const height = bunker ? 34 : 34;
         const housePosition = this.findOpenCoverSpot(
           spawn.x + doorSide * Phaser.Math.Between(42, 74),
           Phaser.Math.Clamp(spawn.y + Phaser.Math.Between(-28, 28), 90, stage.worldHeight - 90),
@@ -1086,9 +1088,9 @@ export class BattleScene extends Phaser.Scene {
           housePosition.y,
           width,
           height,
-          concrete ? 0x777f86 : 0x5c4327,
-          concrete ? 0.96 : 0.9,
-          concrete ? 'BUNKER' : 'HUT',
+          bunker ? 0x777f86 : 0x5c4327,
+          bunker ? 0.96 : 0.9,
+          bunker ? 'BUNKER' : 'HUT',
         );
         const doorX = housePosition.x - doorSide * (width * 0.52);
         this.spawnDoors.set(spawn.id, {
@@ -1224,9 +1226,15 @@ export class BattleScene extends Phaser.Scene {
     const darkEdge = isConcrete ? 0x242b2f : 0x2a1b10;
     const lightEdge = isConcrete ? 0xb8c2c6 : 0xd1a56a;
     rect.setStrokeStyle(5, darkEdge, 0.62);
+    const destructible = label === 'HUT' || label === 'BUNKER';
+    rect.setData('destructibleObstacle', destructible);
+    rect.setData('coverHp', label === 'BUNKER' ? 70 : 30);
+    rect.setData('coverLabel', label ?? (isConcrete ? 'CONCRETE' : 'COVER'));
     this.registerObstacle(rect);
 
-    this.add.rectangle(x + 6, y + 7, blockerWidth * 0.98, blockerHeight * 0.88, 0x000000, 0.18).setDepth(4);
+    const linkedObjects: Phaser.GameObjects.GameObject[] = [];
+    const shadow = this.add.rectangle(x + 6, y + 7, blockerWidth * 0.98, blockerHeight * 0.88, 0x000000, 0.18).setDepth(4);
+    linkedObjects.push(shadow);
     const topBevel = this.add.rectangle(x, y - blockerHeight * 0.5 + 4, Math.max(8, blockerWidth - 8), 7, lightEdge, 0.42);
     topBevel.setDepth(6);
     const leftBevel = this.add.rectangle(x - blockerWidth * 0.5 + 4, y, 7, Math.max(8, blockerHeight - 8), lightEdge, 0.22);
@@ -1235,16 +1243,18 @@ export class BattleScene extends Phaser.Scene {
     bottomLip.setDepth(6);
     const rightLip = this.add.rectangle(x + blockerWidth * 0.5 - 4, y, 7, Math.max(8, blockerHeight - 8), darkEdge, 0.34);
     rightLip.setDepth(6);
-    this.add.rectangle(x, y, Math.max(8, width - 18), Math.max(8, height - 18), 0xffffff, isConcrete ? 0.035 : 0.045).setDepth(5);
-    this.add.rectangle(x - width * 0.18, y - height * 0.18, width * 0.46, Math.max(4, height * 0.16), 0xffffff, 0.08)
+    linkedObjects.push(topBevel, leftBevel, bottomLip, rightLip);
+    const faceHighlight = this.add.rectangle(x, y, Math.max(8, width - 18), Math.max(8, height - 18), 0xffffff, isConcrete ? 0.035 : 0.045).setDepth(5);
+    const brightScuff = this.add.rectangle(x - width * 0.18, y - height * 0.18, width * 0.46, Math.max(4, height * 0.16), 0xffffff, 0.08)
       .setDepth(6)
       .setAngle(-3);
-    this.add.rectangle(x + width * 0.22, y + height * 0.18, width * 0.38, Math.max(4, height * 0.13), 0x10130f, 0.14)
+    const darkScuff = this.add.rectangle(x + width * 0.22, y + height * 0.18, width * 0.38, Math.max(4, height * 0.13), 0x10130f, 0.14)
       .setDepth(6)
       .setAngle(4);
+    linkedObjects.push(faceHighlight, brightScuff, darkScuff);
     const crackTint = tint === 0x6f777b || tint === 0x777f86 ? 0x30363a : 0x372615;
     for (let index = 0; index < 3; index += 1) {
-      this.add.rectangle(
+      const crack = this.add.rectangle(
         x + Phaser.Math.Between(-Math.floor(width * 0.32), Math.floor(width * 0.32)),
         y + Phaser.Math.Between(-Math.floor(height * 0.28), Math.floor(height * 0.28)),
         Phaser.Math.Between(14, Math.max(16, Math.floor(width * 0.32))),
@@ -1252,16 +1262,19 @@ export class BattleScene extends Phaser.Scene {
         crackTint,
         0.3,
       ).setDepth(6).setAngle(Phaser.Math.Between(-28, 28));
+      linkedObjects.push(crack);
     }
 
     if (label) {
-      this.add.text(x, y - 5, label, {
+      const labelObject = this.add.text(x, y - 5, label, {
         fontFamily: 'Bahnschrift, Trebuchet MS, sans-serif',
         fontSize: '9px',
         color: '#efe4c3',
       }).setOrigin(0.5).setDepth(6).setAlpha(0.62);
+      linkedObjects.push(labelObject);
     }
 
+    rect.setData('linkedObjects', linkedObjects);
     return rect;
   }
 
@@ -1388,6 +1401,44 @@ export class BattleScene extends Phaser.Scene {
     box.setData('linkedObjects', [shadow, lid, crossH, crossV, latch]);
   }
 
+  private createAirStrikePickups(stage: StageConfig): void {
+    const stageNumber = this.getStageNumber(stage);
+    const yJitter = ((stageNumber % 4) - 1.5) * 28;
+    const pickups = [
+      { x: Math.floor(stage.worldWidth * 0.36), y: stage.worldHeight * 0.5 + 202 + yJitter },
+      { x: Math.floor(stage.worldWidth * 0.73), y: stage.worldHeight * 0.5 - 192 - yJitter },
+    ];
+
+    for (const pickup of pickups) {
+      const position = this.findOpenCoverSpot(pickup.x, pickup.y, 54, 42, stage, 16) ?? pickup;
+      this.createAirStrikeCallBox(position.x, position.y, 2);
+    }
+  }
+
+  private createAirStrikeCallBox(x: number, y: number, bombCount: number): void {
+    const box = this.add.rectangle(x, y, 56, 42, 0x78d8ff, 0.94);
+    box.setDepth(9);
+    box.setStrokeStyle(3, 0xffffff, 0.54);
+    box.setData('bombCount', bombCount);
+    this.physics.add.existing(box, true);
+    this.airStrikePickups?.add(box);
+
+    const shadow = this.add.rectangle(x + 3, y + 4, 50, 30, 0x000000, 0.16).setDepth(8);
+    const antenna = this.add.rectangle(x + 17, y - 18, 5, 18, 0xe9fbff, 0.88).setDepth(10).setAngle(-18);
+    const signalA = this.add.circle(x + 21, y - 27, 5, 0xe9fbff, 0.24).setDepth(10);
+    const signalB = this.add.circle(x + 21, y - 27, 11, 0xe9fbff, 0.16).setDepth(10);
+    const screen = this.add.rectangle(x, y, 35, 24, 0x0b3344, 0.86).setDepth(10);
+    screen.setStrokeStyle(2, 0xe9fbff, 0.54);
+    const label = this.add.text(x, y - 1, 'AIR', {
+      fontFamily: 'Impact, Haettenschweiler, sans-serif',
+      fontSize: '22px',
+      color: '#e9fbff',
+      stroke: '#09202a',
+      strokeThickness: 3,
+    }).setOrigin(0.5).setDepth(11);
+    box.setData('linkedObjects', [shadow, antenna, signalA, signalB, screen, label]);
+  }
+
   private createRescueBunkers(stage: StageConfig): void {
     if (!this.shadowSquadMode) {
       return;
@@ -1412,6 +1463,9 @@ export class BattleScene extends Phaser.Scene {
     body.setDepth(8);
     body.setStrokeStyle(3, 0x9ed8ff, 0.46);
     body.setData('rescueBunkerId', id);
+    body.setData('destructibleObstacle', true);
+    body.setData('coverHp', 120);
+    body.setData('coverLabel', 'RESCUE');
     this.physics.add.existing(body, true);
     this.rescueBunkerGroup?.add(body);
     this.obstacleBodies.push(body);
@@ -1428,6 +1482,7 @@ export class BattleScene extends Phaser.Scene {
       stroke: '#102027',
       strokeThickness: 4,
     }).setOrigin(0.5).setDepth(11);
+    body.setData('linkedObjects', [roof, door, light, barsA, barsB, marker]);
 
     this.rescueBunkers.push({
       id,
@@ -1772,31 +1827,35 @@ export class BattleScene extends Phaser.Scene {
 
   private registerObstacle(rect: Phaser.GameObjects.Rectangle): void {
     this.physics.add.existing(rect, true);
-    this.obstacleGroup?.add(rect);
     const body = rect.body as Phaser.Physics.Arcade.StaticBody | undefined;
     body?.updateFromGameObject();
     this.obstacleBodies.push(rect);
   }
 
   private setupColliders(): void {
-    const obstacles = this.obstacleGroup!;
-    this.physics.add.collider(this.playerGroup!, obstacles);
-    this.physics.add.collider(this.allyGroup!, obstacles);
-    this.physics.add.collider(this.enemyGroup!, obstacles);
-    this.physics.add.collider(this.bossGroup!, obstacles);
-    this.physics.add.collider(this.vehicleGroup!, obstacles);
-    this.physics.add.collider(this.playerBullets!, obstacles, (bullet) => {
-      this.destroyBulletObject(bullet as Phaser.GameObjects.GameObject);
-    });
-    this.physics.add.collider(this.enemyBullets!, obstacles, (bullet) => {
-      this.destroyBulletObject(bullet as Phaser.GameObjects.GameObject);
-    });
-    this.physics.add.collider(this.playerBullets!, this.rescueBunkerGroup!, (bullet) => {
-      this.destroyBulletObject(bullet as Phaser.GameObjects.GameObject);
-    });
-    this.physics.add.collider(this.enemyBullets!, this.rescueBunkerGroup!, (bullet) => {
-      this.destroyBulletObject(bullet as Phaser.GameObjects.GameObject);
-    });
+    for (const obstacle of this.obstacleBodies) {
+      this.physics.add.collider(
+        this.playerGroup!,
+        obstacle,
+        undefined,
+        (playerObject) => this.shouldPlayerCollideWithObstacle(playerObject as Phaser.GameObjects.GameObject, obstacle),
+      );
+      this.physics.add.collider(this.allyGroup!, obstacle);
+      this.physics.add.collider(this.enemyGroup!, obstacle);
+      this.physics.add.collider(this.bossGroup!, obstacle);
+      this.physics.add.collider(
+        this.vehicleGroup!,
+        obstacle,
+        undefined,
+        (vehicleObject) => this.shouldVehicleCollideWithObstacle(vehicleObject as Phaser.GameObjects.GameObject, obstacle),
+      );
+      this.physics.add.collider(this.playerBullets!, obstacle, (bullet) => {
+        this.handleObstacleBulletHit(bullet as Phaser.GameObjects.GameObject, obstacle);
+      });
+      this.physics.add.collider(this.enemyBullets!, obstacle, (bullet) => {
+        this.handleObstacleBulletHit(bullet as Phaser.GameObjects.GameObject, obstacle);
+      });
+    }
 
     this.physics.add.overlap(this.playerBullets!, this.enemyGroup!, (bullet, enemy) => {
       this.handleEnemyHit(bullet as Phaser.GameObjects.GameObject, enemy as Phaser.GameObjects.GameObject);
@@ -1825,6 +1884,9 @@ export class BattleScene extends Phaser.Scene {
     this.physics.add.overlap(this.playerGroup!, this.healthPickups!, (player, pickup) => {
       this.handleHealthPickup(player as Phaser.GameObjects.GameObject, pickup as Phaser.GameObjects.GameObject);
     });
+    this.physics.add.overlap(this.playerGroup!, this.airStrikePickups!, (player, pickup) => {
+      this.handleAirStrikePickup(player as Phaser.GameObjects.GameObject, pickup as Phaser.GameObjects.GameObject);
+    });
     this.physics.add.overlap(this.playerGroup!, this.vehicleGroup!, (player, vehicle) => {
       this.handleVehicleEntry(player as Phaser.GameObjects.GameObject, vehicle as Phaser.GameObjects.GameObject);
     });
@@ -1834,6 +1896,60 @@ export class BattleScene extends Phaser.Scene {
     this.physics.add.overlap(this.vehicleGroup!, this.enemyGroup!, (vehicle, enemy) => {
       this.handleVehicleEnemyContact(vehicle as Phaser.GameObjects.GameObject, enemy as Phaser.GameObjects.GameObject);
     });
+  }
+
+  private shouldPlayerCollideWithObstacle(
+    playerObject: Phaser.GameObjects.GameObject,
+    obstacle: Phaser.GameObjects.Rectangle,
+  ): boolean {
+    const player = playerObject.getData('actor') as PlayerUnit | undefined;
+    if (!player?.alive || !this.isSoftCoverObstacle(obstacle)) {
+      return true;
+    }
+
+    if (this.time.now < player.jumpUntil) {
+      this.destroyDestructibleObstacle(obstacle, String(obstacle.getData('coverLabel') ?? 'COVER'), false);
+      this.createHitSpark(player.sprite.x, player.sprite.y, player.tint, 'VAULT');
+      return false;
+    }
+
+    return true;
+  }
+
+  private shouldVehicleCollideWithObstacle(
+    vehicleObject: Phaser.GameObjects.GameObject,
+    obstacle: Phaser.GameObjects.Rectangle,
+  ): boolean {
+    const vehicle = vehicleObject.getData('vehicle') as VehicleUnit | undefined;
+    if (!vehicle?.active) {
+      return true;
+    }
+
+    const canHeavyVehiclePushThrough = vehicle.kind === 'tank' || vehicle.kind === 'jeep';
+    if (canHeavyVehiclePushThrough && Boolean(obstacle.getData('vehiclePassableObstacle'))) {
+      return false;
+    }
+
+    if (!this.isSoftCoverObstacle(obstacle)) {
+      return true;
+    }
+
+    if (canHeavyVehiclePushThrough) {
+      this.destroyDestructibleObstacle(obstacle, String(obstacle.getData('coverLabel') ?? 'COVER'), false);
+      this.createHitSpark(vehicle.body.x, vehicle.body.y, 0xffd166, 'CRUSH');
+      return false;
+    }
+
+    return true;
+  }
+
+  private isSoftCoverObstacle(obstacle: Phaser.GameObjects.Rectangle): boolean {
+    if (!obstacle.active || !Boolean(obstacle.getData('destructibleObstacle'))) {
+      return false;
+    }
+
+    const label = String(obstacle.getData('coverLabel') ?? '');
+    return label === 'HUT' || label === 'BUNKER';
   }
 
   private createOverlayText(): void {
@@ -2919,8 +3035,8 @@ export class BattleScene extends Phaser.Scene {
       kind,
       theme,
       sprite,
-      health: kind === 'tankRaider' ? 330 : kind === 'jeepRaider' ? 160 : kind === 'bikeRaider' ? 70 : kind === 'scout' ? 24 : kind === 'zombie' ? 28 : kind === 'turret' ? 130 : kind === 'rocketeer' ? 85 : 50,
-      maxHealth: kind === 'tankRaider' ? 330 : kind === 'jeepRaider' ? 160 : kind === 'bikeRaider' ? 70 : kind === 'scout' ? 24 : kind === 'zombie' ? 28 : kind === 'turret' ? 130 : kind === 'rocketeer' ? 85 : 50,
+      health: kind === 'tankRaider' ? 560 : kind === 'jeepRaider' ? 260 : kind === 'bikeRaider' ? 80 : kind === 'scout' ? 24 : kind === 'zombie' ? 28 : kind === 'turret' ? 130 : kind === 'rocketeer' ? 85 : 50,
+      maxHealth: kind === 'tankRaider' ? 560 : kind === 'jeepRaider' ? 260 : kind === 'bikeRaider' ? 80 : kind === 'scout' ? 24 : kind === 'zombie' ? 28 : kind === 'turret' ? 130 : kind === 'rocketeer' ? 85 : 50,
       alive: true,
       moveSpeed: kind === 'bikeRaider' ? 128 : kind === 'jeepRaider' ? 94 : kind === 'tankRaider' ? 54 : kind === 'scout' ? 96 : kind === 'zombie' ? 96 : kind === 'rocketeer' ? 48 : kind === 'turret' ? 0 : 62,
       fireRate: kind === 'tankRaider' ? 1420 : kind === 'jeepRaider' ? 980 : kind === 'bikeRaider' ? 1180 : kind === 'scout' ? 1520 : kind === 'rocketeer' ? 1400 : kind === 'turret' ? 1050 : 900,
@@ -3876,6 +3992,82 @@ export class BattleScene extends Phaser.Scene {
     }
   }
 
+  private handleObstacleBulletHit(
+    bulletObject: Phaser.GameObjects.GameObject,
+    obstacleObject: Phaser.GameObjects.GameObject,
+  ): void {
+    const bullet = bulletObject as Phaser.Physics.Arcade.Image;
+    const obstacle = obstacleObject as Phaser.GameObjects.Rectangle;
+    if (!bullet.active || !obstacle.active) {
+      return;
+    }
+
+    const destructible = Boolean(obstacle.getData('destructibleObstacle'));
+    if (!destructible) {
+      this.destroyBulletObject(bullet);
+      return;
+    }
+
+    const damage = Math.max(8, Number(bullet.getData('damage') ?? 20));
+    const nextHp = Number(obstacle.getData('coverHp') ?? 0) - damage;
+    const label = String(obstacle.getData('coverLabel') ?? 'COVER');
+    this.resolvePlayerBulletImpact(bullet, bullet.x, bullet.y);
+
+    if (nextHp > 0) {
+      obstacle.setData('coverHp', nextHp);
+      obstacle.setAlpha(Phaser.Math.Clamp(0.44 + nextHp / 180, 0.44, 0.96));
+      this.createHitSpark(obstacle.x, obstacle.y, 0xffd166, `${label} ${Math.ceil(nextHp)}`);
+      return;
+    }
+
+    this.destroyDestructibleObstacle(obstacle, label);
+  }
+
+  private destroyDestructibleObstacle(obstacle: Phaser.GameObjects.Rectangle, label: string, revealReward = true): void {
+    this.obstacleBodies = this.obstacleBodies.filter((entry) => entry !== obstacle);
+    this.physics.world.disable(obstacle);
+    obstacle.setData('destroyedObstacle', true);
+    this.createHitSpark(obstacle.x, obstacle.y, 0xfff0aa, `${label} OPEN`);
+    if (revealReward) {
+      this.revealDestroyedCoverReward(obstacle, label);
+    }
+
+    const linkedObjects = obstacle.getData('linkedObjects') as Phaser.GameObjects.GameObject[] | undefined;
+    const targets = [obstacle, ...(linkedObjects ?? [])].filter((object) => object.active);
+    this.tweens.add({
+      targets,
+      alpha: 0,
+      duration: 360,
+      ease: 'Cubic.easeOut',
+      onComplete: () => {
+        for (const target of targets) {
+          target.destroy();
+        }
+      },
+    });
+  }
+
+  private revealDestroyedCoverReward(obstacle: Phaser.GameObjects.Rectangle, label: string): void {
+    if (label !== 'HUT' && label !== 'BUNKER') {
+      return;
+    }
+
+    const stage = this.stage ?? this.director.getSnapshot().currentStage;
+    const rewardSeed = Math.floor((obstacle.x + obstacle.y + this.getStageNumber(stage) * 31) / 97);
+    if (rewardSeed % 3 === 0) {
+      this.createHealthPickupBox(obstacle.x, obstacle.y, label === 'BUNKER' ? 50 : 35);
+      return;
+    }
+
+    if (rewardSeed % 3 === 1) {
+      const reward = this.getSupplyCrateWeapon(stage, rewardSeed);
+      this.createWeaponPickupCrate(reward, obstacle.x, obstacle.y, stage.id);
+      return;
+    }
+
+    this.createAirStrikeCallBox(obstacle.x, obstacle.y, 1);
+  }
+
   private handleSupplyCrateHit(bulletObject: Phaser.GameObjects.GameObject, crateObject: Phaser.GameObjects.GameObject): void {
     const bullet = bulletObject as Phaser.Physics.Arcade.Image;
     const crate = crateObject as Phaser.GameObjects.Rectangle;
@@ -3896,6 +4088,12 @@ export class BattleScene extends Phaser.Scene {
     if ((this.getStageNumber(stage) + crateIndex) % 3 === 0) {
       this.createHealthPickupBox(x, y, 45);
       this.showBanner('Supply box opened: health pack', '#f4e6d5');
+      return;
+    }
+
+    if ((this.getStageNumber(stage) + crateIndex) % 4 === 0) {
+      this.createAirStrikeCallBox(x, y, 2);
+      this.showBanner('Supply box opened: air strike call', '#d7f6ff');
       return;
     }
 
@@ -3965,11 +4163,27 @@ export class BattleScene extends Phaser.Scene {
     this.emitHud('live');
   }
 
+  private handleAirStrikePickup(playerObject: Phaser.GameObjects.GameObject, pickupObject: Phaser.GameObjects.GameObject): void {
+    const player = playerObject.getData('actor') as PlayerUnit | undefined;
+    const pickup = pickupObject as Phaser.GameObjects.Rectangle;
+    if (!player || !player.alive || !pickup.active) {
+      return;
+    }
+
+    const bombCount = Number(pickup.getData('bombCount') ?? 1);
+    player.bombs = Math.min(12, player.bombs + bombCount);
+    const linkedObjects = pickup.getData('linkedObjects') as Phaser.GameObjects.GameObject[] | undefined;
+    linkedObjects?.forEach((object) => object.destroy());
+    pickup.destroy();
+    this.showBanner(`${player.label} collected Air Strike Call +${bombCount}`, player.accent);
+    this.emitHud('live');
+  }
+
   private handleRescueBunker(playerObject: Phaser.GameObjects.GameObject, bunkerObject: Phaser.GameObjects.GameObject): void {
     const player = playerObject.getData('actor') as PlayerUnit | undefined;
     const bunkerId = String(bunkerObject.getData('rescueBunkerId') ?? '');
     const bunker = this.rescueBunkers.find((entry) => entry.id === bunkerId);
-    if (!this.shadowSquadMode || !player?.alive || !bunker || bunker.rescued) {
+    if (!this.shadowSquadMode || !player?.alive || !bunker || bunker.rescued || !bunker.body.active) {
       return;
     }
 
@@ -4399,6 +4613,10 @@ export class BattleScene extends Phaser.Scene {
         (bullet.body as Phaser.Physics.Arcade.Body).reset(bullet.x, bullet.y);
       }
 
+      if (group === this.enemyBullets && this.tryHitVehicleWithEnemyBullet(bullet)) {
+        continue;
+      }
+
       if (
         time > expiry
         || traveled >= maxDistance
@@ -4407,6 +4625,25 @@ export class BattleScene extends Phaser.Scene {
         this.resolvePlayerBulletImpact(bullet, bullet.x, bullet.y);
       }
     }
+  }
+
+  private tryHitVehicleWithEnemyBullet(bullet: Phaser.Physics.Arcade.Image): boolean {
+    const bulletBounds = bullet.getBounds();
+    for (const vehicle of this.vehicles) {
+      if (!vehicle.active || !(vehicle.body.body as Phaser.Physics.Arcade.Body | undefined)?.enable) {
+        continue;
+      }
+
+      if (!Phaser.Geom.Rectangle.Overlaps(bulletBounds, vehicle.body.getBounds())) {
+        continue;
+      }
+
+      this.damageVehicle(vehicle, 1);
+      this.dropBullet(bullet);
+      return true;
+    }
+
+    return false;
   }
 
   private getBulletTravelBounds(): Phaser.Geom.Rectangle {
