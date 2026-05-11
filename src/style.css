@@ -56,23 +56,23 @@ a {
 .shell {
   width: min(1440px, 100%);
   margin: 0 auto;
-  padding: 24px;
+  padding: 14px;
   display: grid;
-  gap: 18px;
+  gap: 10px;
   min-height: 100svh;
 }
 
 .masthead {
   display: flex;
   justify-content: space-between;
-  align-items: end;
-  gap: 20px;
-  padding: 18px 22px;
+  align-items: center;
+  gap: 14px;
+  padding: 6px 12px;
   border: 1px solid var(--line);
   background:
     linear-gradient(135deg, rgba(239, 182, 72, 0.08), transparent 30%),
     rgba(7, 12, 8, 0.8);
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.28);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.24);
 }
 
 .eyebrow,
@@ -88,7 +88,7 @@ a {
 
 .masthead h1,
 .overlay-card h1 {
-  margin: 8px 0 0;
+  margin: 2px 0 0;
   font-family: var(--font-title);
   font-size: clamp(2.1rem, 4.4vw, 3.6rem);
   letter-spacing: 0.05em;
@@ -97,9 +97,21 @@ a {
 }
 
 .masthead p {
-  max-width: 480px;
+  max-width: 560px;
   margin: 0;
   color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.15;
+}
+
+.masthead .eyebrow {
+  font-size: 0.55rem;
+  letter-spacing: 0.16em;
+}
+
+.masthead h1 {
+  font-size: clamp(1.25rem, 2.1vw, 2rem);
+  line-height: 0.95;
 }
 
 .viewport-shell {
@@ -205,8 +217,9 @@ a {
   background: linear-gradient(180deg, rgba(255, 242, 196, 0.22), rgba(6, 12, 8, 0.52));
   color: #fff2c4;
   font-family: var(--font-title);
-  font-size: 0.96rem;
-  letter-spacing: 0.12em;
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.48);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.16),
@@ -214,7 +227,7 @@ a {
 }
 
 .touch-controls-root[data-mode='desktop'] .touch-action-grid {
-  grid-template-columns: repeat(2, minmax(0, 62px));
+  grid-template-columns: repeat(2, minmax(0, 88px));
   gap: 8px;
   padding: 10px;
   border: 1px solid rgba(255, 242, 196, 0.14);
@@ -224,7 +237,7 @@ a {
 }
 
 .touch-controls-root[data-mode='desktop'] .touch-button {
-  min-width: 62px;
+  min-width: 88px;
   min-height: 52px;
   border-radius: 16px;
   cursor: pointer;
@@ -236,7 +249,7 @@ a {
 }
 
 .touch-controls-root[data-mode='desktop'] .touch-button-fire {
-  min-width: 70px;
+  min-width: 96px;
   min-height: 62px;
   border-radius: 18px;
 }
@@ -254,9 +267,10 @@ a {
   color: #071009;
   background: linear-gradient(180deg, #fff2c4, #efb648);
   font-family: var(--font-title);
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
+  font-size: 0.66rem;
+  letter-spacing: 0.04em;
   line-height: 1;
+  white-space: nowrap;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.34),
     0 5px 12px rgba(0, 0, 0, 0.22);
@@ -282,7 +296,7 @@ a {
 
   .viewport-frame {
     width: auto;
-    height: min(68svh, calc(100svh - 260px));
+    height: min(78svh, calc(100svh - 126px));
     aspect-ratio: 16 / 9;
     max-width: 100%;
     margin-inline: auto;
@@ -302,11 +316,15 @@ a {
   }
 
   .masthead {
-    padding: 12px 16px;
+    padding: 5px 10px;
   }
 
   .masthead h1 {
-    font-size: clamp(1.8rem, 3.2vw, 2.6rem);
+    font-size: clamp(1.1rem, 2vw, 1.55rem);
+  }
+
+  .masthead p {
+    font-size: 0.72rem;
   }
 
   .intel-grid {
@@ -314,7 +332,7 @@ a {
   }
 
   .viewport-frame {
-    height: min(74svh, calc(100svh - 116px));
+    height: min(84svh, calc(100svh - 72px));
   }
 }
 
@@ -640,6 +658,103 @@ a {
   color: var(--shell);
   border-color: rgba(239, 182, 72, 0.72);
   background: linear-gradient(135deg, rgba(239, 182, 72, 0.96), rgba(240, 215, 139, 0.88));
+}
+
+@media (min-width: 901px) {
+  body[data-touch-mode='false'] .hud-root[data-phase='live'] .hud-block {
+    top: 8px;
+    flex-direction: row;
+    gap: 6px;
+    align-items: flex-start;
+  }
+
+  body[data-touch-mode='false'] .hud-root[data-phase='live'] .hud-left {
+    left: 8px;
+    max-width: min(58vw, 720px);
+  }
+
+  body[data-touch-mode='false'] .hud-root[data-phase='live'] .hud-right {
+    right: 8px;
+    width: auto;
+    max-width: min(48vw, 560px);
+  }
+
+  body[data-touch-mode='false'] .hud-root[data-phase='live'] .mission-chip {
+    display: none;
+  }
+
+  body[data-touch-mode='false'] .hud-root[data-phase='live'] .player-stack {
+    display: flex;
+    gap: 6px;
+  }
+
+  body[data-touch-mode='false'] .hud-root[data-phase='live'] .player-card,
+  body[data-touch-mode='false'] .hud-root[data-phase='live'] .status-chip,
+  body[data-touch-mode='false'] .hud-root[data-phase='live'] .boss-chip,
+  body[data-touch-mode='false'] .hud-root[data-phase='live'] .score-chip {
+    padding: 5px 7px;
+    gap: 3px;
+    background: rgba(6, 12, 8, 0.56);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  }
+
+  body[data-touch-mode='false'] .hud-root[data-phase='live'] .player-card {
+    min-width: 168px;
+    max-width: 230px;
+    border-left-width: 3px;
+  }
+
+  body[data-touch-mode='false'] .hud-root[data-phase='live'] .player-head,
+  body[data-touch-mode='false'] .hud-root[data-phase='live'] .player-meta,
+  body[data-touch-mode='false'] .hud-root[data-phase='live'] .boss-top {
+    gap: 6px;
+  }
+
+  body[data-touch-mode='false'] .hud-root[data-phase='live'] .player-head strong,
+  body[data-touch-mode='false'] .hud-root[data-phase='live'] .status-chip strong,
+  body[data-touch-mode='false'] .hud-root[data-phase='live'] .score-chip strong,
+  body[data-touch-mode='false'] .hud-root[data-phase='live'] .boss-chip strong {
+    font-size: 0.74rem;
+    line-height: 1;
+  }
+
+  body[data-touch-mode='false'] .hud-root[data-phase='live'] .player-head span,
+  body[data-touch-mode='false'] .hud-root[data-phase='live'] .player-meta,
+  body[data-touch-mode='false'] .hud-root[data-phase='live'] .status-chip span,
+  body[data-touch-mode='false'] .hud-root[data-phase='live'] .score-chip span,
+  body[data-touch-mode='false'] .hud-root[data-phase='live'] .boss-top span {
+    font-size: 0.62rem;
+    line-height: 1;
+  }
+
+  body[data-touch-mode='false'] .hud-root[data-phase='live'] .status-chip span:nth-of-type(n + 2),
+  body[data-touch-mode='false'] .hud-root[data-phase='live'] .score-chip span,
+  body[data-touch-mode='false'] .hud-root[data-phase='live'] .player-head span,
+  body[data-touch-mode='false'] .hud-root[data-phase='live'] .player-meta span:nth-child(2),
+  body[data-touch-mode='false'] .hud-root[data-phase='live'] .ammo-pill:not(.is-active) {
+    display: none;
+  }
+
+  body[data-touch-mode='false'] .hud-root[data-phase='live'] .meter {
+    height: 5px;
+  }
+
+  body[data-touch-mode='false'] .hud-root[data-phase='live'] .ammo-strip {
+    gap: 3px;
+  }
+
+  body[data-touch-mode='false'] .hud-root[data-phase='live'] .ammo-pill {
+    padding: 1px 5px;
+    font-size: 0.54rem;
+  }
+
+  body[data-touch-mode='false'] .hud-root[data-phase='live'] .skip-stage-button {
+    min-height: 28px;
+    padding: 4px 7px;
+    border-radius: 8px;
+    font-size: 0.54rem;
+    letter-spacing: 0.06em;
+  }
 }
 
 .meter {

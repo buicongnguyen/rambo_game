@@ -36,6 +36,7 @@ interface WeaponSpec {
   pellets: number;
   scaleX: number;
   scaleY: number;
+  projectileTexture?: string;
   splashRadius?: number;
   splashDamage?: number;
   poisonRadius?: number;
@@ -146,8 +147,8 @@ const WEAPONS: Record<WeaponKind, WeaponSpec> = {
     ammoCost: 1,
     spread: 0.18,
     pellets: 5,
-    scaleX: 1.95,
-    scaleY: 1.7,
+    scaleX: 2.5,
+    scaleY: 2.15,
   },
   launcher: {
     kind: 'launcher',
@@ -202,8 +203,8 @@ const WEAPONS: Record<WeaponKind, WeaponSpec> = {
     ammoCost: 1,
     spread: 0,
     pellets: 1,
-    scaleX: 2.2,
-    scaleY: 1.35,
+    scaleX: 3,
+    scaleY: 1.85,
     splashRadius: 170,
     splashDamage: 105,
   },
@@ -221,8 +222,9 @@ const WEAPONS: Record<WeaponKind, WeaponSpec> = {
     ammoCost: 1,
     spread: 0,
     pellets: 1,
-    scaleX: 2.7,
-    scaleY: 1.75,
+    scaleX: 1.35,
+    scaleY: 1.2,
+    projectileTexture: 'projectile-missile',
     splashRadius: 230,
     splashDamage: 150,
   },
@@ -355,6 +357,7 @@ interface PlayerUnit {
     fire: Phaser.Input.Keyboard.Key;
     special: Phaser.Input.Keyboard.Key;
   };
+  keyboardAliases?: Partial<Record<keyof PlayerUnit['controls'], Phaser.Input.Keyboard.Key[]>>;
 }
 
 interface AllyUnit {
@@ -561,6 +564,17 @@ export class BattleScene extends Phaser.Scene {
       g.fillStyle(0xffffff, 1);
       g.fillRoundedRect(0, 0, 12, 6, 3);
       g.generateTexture('bullet-shell', 12, 6);
+      g.clear();
+      g.fillStyle(0xfff2c4, 1);
+      g.fillTriangle(26, 8, 16, 2, 16, 14);
+      g.fillStyle(0xdce5df, 1);
+      g.fillRoundedRect(4, 4, 15, 8, 4);
+      g.fillStyle(0xff845f, 1);
+      g.fillTriangle(4, 4, 0, 0, 0, 8);
+      g.fillTriangle(4, 12, 0, 16, 0, 8);
+      g.fillStyle(0x323b37, 1);
+      g.fillRect(11, 6, 7, 4);
+      g.generateTexture('projectile-missile', 28, 16);
       g.clear();
       g.fillStyle(0xffffff, 1);
       g.fillCircle(10, 10, 10);
@@ -1811,6 +1825,15 @@ export class BattleScene extends Phaser.Scene {
           fire: this.input.keyboard!.addKey(scheme.keys.fire),
           special: this.input.keyboard!.addKey(scheme.keys.special),
         },
+        keyboardAliases: playerId === 1 && playerCount === 1
+          ? {
+            up: [this.input.keyboard!.addKey('UP')],
+            down: [this.input.keyboard!.addKey('DOWN')],
+            left: [this.input.keyboard!.addKey('LEFT')],
+            right: [this.input.keyboard!.addKey('RIGHT')],
+            fire: [this.input.keyboard!.addKey('SPACE')],
+          }
+          : undefined,
       };
 
       sprite.setData('actor', player);
@@ -2546,8 +2569,8 @@ export class BattleScene extends Phaser.Scene {
 
   private getMovementInput(player: PlayerUnit): Phaser.Math.Vector2 {
     const axis = player.virtualControlId ? this.virtualGamepad.getAxis(player.virtualControlId) : { x: 0, y: 0 };
-    const keyboardX = (player.controls.left.isDown ? -1 : 0) + (player.controls.right.isDown ? 1 : 0);
-    const keyboardY = (player.controls.up.isDown ? -1 : 0) + (player.controls.down.isDown ? 1 : 0);
+    const keyboardX = (this.isKeyboardControlDown(player, 'left') ? -1 : 0) + (this.isKeyboardControlDown(player, 'right') ? 1 : 0);
+    const keyboardY = (this.isKeyboardControlDown(player, 'up') ? -1 : 0) + (this.isKeyboardControlDown(player, 'down') ? 1 : 0);
     const movement = new Phaser.Math.Vector2(
       Phaser.Math.Clamp(axis.x + keyboardX, -1, 1),
       Phaser.Math.Clamp(axis.y + keyboardY, -1, 1),
@@ -2562,15 +2585,24 @@ export class BattleScene extends Phaser.Scene {
 
   private isActionDown(player: PlayerUnit, action: Extract<GameAction, 'fire'>): boolean {
     const touchActive = player.virtualControlId ? this.virtualGamepad.isDown(player.virtualControlId, action) : false;
-    return player.controls[action].isDown || touchActive;
+    return this.isKeyboardControlDown(player, action) || touchActive;
   }
 
   private wasActionPressed(player: PlayerUnit, action: Extract<GameAction, 'crouch' | 'jump' | 'special' | 'fire'>): boolean {
-    const keyPressed = Phaser.Input.Keyboard.JustDown(player.controls[action]);
+    const keyPressed = this.wasKeyboardControlPressed(player, action);
     const touchPressed = player.virtualControlId
       ? this.virtualGamepad.consumeJustPressed(player.virtualControlId, action)
       : false;
     return keyPressed || touchPressed;
+  }
+
+  private isKeyboardControlDown(player: PlayerUnit, action: keyof PlayerUnit['controls']): boolean {
+    return player.controls[action].isDown || (player.keyboardAliases?.[action]?.some((key) => key.isDown) ?? false);
+  }
+
+  private wasKeyboardControlPressed(player: PlayerUnit, action: keyof PlayerUnit['controls']): boolean {
+    return Phaser.Input.Keyboard.JustDown(player.controls[action])
+      || (player.keyboardAliases?.[action]?.some((key) => Phaser.Input.Keyboard.JustDown(key)) ?? false);
   }
 
   private updateEnemies(time: number): void {
@@ -3275,6 +3307,7 @@ export class BattleScene extends Phaser.Scene {
         weapon.pierceCount,
         weapon.dropStartRatio,
         weapon.tracerDistance,
+        weapon.projectileTexture,
       );
     }
     player.nextFireAt = time + weapon.fireRate;
@@ -3624,8 +3657,9 @@ export class BattleScene extends Phaser.Scene {
     pierceCount?: number,
     dropStartRatio?: number,
     tracerDistance?: number,
+    projectileTexture = 'bullet-shell',
   ): void {
-    const bullet = this.physics.add.image(x, y, 'bullet-shell');
+    const bullet = this.physics.add.image(x, y, projectileTexture);
     bullet.setTint(tint);
     bullet.setDepth(16);
     bullet.setScale(scaleX, scaleY);
