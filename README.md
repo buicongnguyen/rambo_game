@@ -2,6 +2,11 @@
 
 A browser-based retro run-and-gun prototype inspired by jungle-era military shooters on Nintendo and arcades.
 
+> **Version 2 is out — [play it here](https://buicongnguyen.github.io/rambo_game_v2/).**
+> V2 rebuilds the projectile physics (frame-rate independent, no wall tunneling), the background
+> rendering (no more void on resize), and the stage logic, with unit tests and a working Android
+> APK pipeline. Source and changelog: [buicongnguyen/rambo_game_v2](https://github.com/buicongnguyen/rambo_game_v2).
+
 Research checked on April 28, 2026.
 
 ## Design Direction
