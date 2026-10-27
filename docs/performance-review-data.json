@@ -1,0 +1,2152 @@
+{
+  "date": "2026-10-25",
+  "engine": "Phaser 3.90.0",
+  "before": [
+    {
+      "name": "desktop-entry",
+      "frames": 60,
+      "measurement": {
+        "active": false,
+        "draws": 420,
+        "triangles": 2128440,
+        "bufferCalls": 300,
+        "bufferBytes": 178788960,
+        "textureUploads": 0,
+        "applyITRS": 50940,
+        "multiply": 53220,
+        "multiplyWithOffset": 0,
+        "batchFillPath": 1200,
+        "updateText": 0,
+        "displayObjects": 851,
+        "textureKeys": 91,
+        "textCanvases": 59,
+        "pipelineBufferBytes": 3778872,
+        "stage": "Emerald Killbox"
+      },
+      "cpuMs": {
+        "median": 1.2999999523162842,
+        "p95": 1.4000000953674316
+      },
+      "frameMs": {
+        "median": 16.800000071525574,
+        "p95": 17.699999928474426
+      },
+      "heap": {
+        "usedSize": 9827672,
+        "totalSize": 10489856,
+        "embedderHeapUsedSize": 4206568,
+        "backingStorageSize": 12143559
+      },
+      "gpu": {
+        "name": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4080 SUPER (0x00002702) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "canvas": [
+          1192,
+          670
+        ]
+      },
+      "top": [
+        {
+          "fn": "(idle)",
+          "file": "",
+          "selfMs": 1354.35
+        },
+        {
+          "fn": "(program)",
+          "file": "",
+          "selfMs": 197.1
+        },
+        {
+          "fn": "render",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 36.798
+        },
+        {
+          "fn": "(garbage collector)",
+          "file": "",
+          "selfMs": 18.242
+        },
+        {
+          "fn": "FillPathWebGL",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 12.623
+        },
+        {
+          "fn": "FillPathWebGL",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 7.56
+        },
+        {
+          "fn": "bufferData",
+          "file": "",
+          "selfMs": 3.062
+        },
+        {
+          "fn": "batchLine",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 3.05
+        },
+        {
+          "fn": "batchQuad",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 3.027
+        },
+        {
+          "fn": "bufferData",
+          "file": "",
+          "selfMs": 2.59
+        },
+        {
+          "fn": "GetCalcMatrix",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 1.635
+        },
+        {
+          "fn": "",
+          "file": "",
+          "selfMs": 1.606
+        },
+        {
+          "fn": "StrokePathWebGL",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 1.582
+        },
+        {
+          "fn": "FillPathWebGL",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 1.536
+        },
+        {
+          "fn": "activeTexture",
+          "file": "",
+          "selfMs": 1.53
+        },
+        {
+          "fn": "multiply",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 1.53
+        }
+      ],
+      "errors": []
+    },
+    {
+      "name": "desktop-dense",
+      "dense": true,
+      "frames": 60,
+      "measurement": {
+        "active": false,
+        "draws": 420,
+        "triangles": 1670520,
+        "bufferCalls": 240,
+        "bufferBytes": 140323680,
+        "textureUploads": 0,
+        "applyITRS": 62880,
+        "multiply": 65160,
+        "multiplyWithOffset": 0,
+        "batchFillPath": 1200,
+        "updateText": 0,
+        "displayObjects": 1050,
+        "textureKeys": 112,
+        "textCanvases": 80,
+        "pipelineBufferBytes": 3778872,
+        "stage": "Factory Underground"
+      },
+      "cpuMs": {
+        "median": 1.100000023841858,
+        "p95": 1.5
+      },
+      "frameMs": {
+        "median": 16.700000047683716,
+        "p95": 17.800000071525574
+      },
+      "heap": {
+        "usedSize": 10540564,
+        "totalSize": 11800576,
+        "embedderHeapUsedSize": 8858896,
+        "backingStorageSize": 12143713
+      },
+      "gpu": {
+        "name": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4080 SUPER (0x00002702) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "canvas": [
+          1192,
+          670
+        ]
+      },
+      "top": [
+        {
+          "fn": "(idle)",
+          "file": "",
+          "selfMs": 1398.601
+        },
+        {
+          "fn": "(program)",
+          "file": "",
+          "selfMs": 208.682
+        },
+        {
+          "fn": "FillPathWebGL",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 14.291
+        },
+        {
+          "fn": "batchLine",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 7.104
+        },
+        {
+          "fn": "batchQuad",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 6.986
+        },
+        {
+          "fn": "bufferSubData",
+          "file": "",
+          "selfMs": 6.206
+        },
+        {
+          "fn": "(garbage collector)",
+          "file": "",
+          "selfMs": 4.549
+        },
+        {
+          "fn": "GetCalcMatrix",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 3.08
+        },
+        {
+          "fn": "RectangleWebGLRenderer",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 3.067
+        },
+        {
+          "fn": "ArcWebGLRenderer",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 2.67
+        },
+        {
+          "fn": "TextWebGLRenderer",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 2.629
+        },
+        {
+          "fn": "requestAnimationFrame",
+          "file": "",
+          "selfMs": 2.339
+        },
+        {
+          "fn": "evaluate",
+          "file": "",
+          "selfMs": 1.821
+        },
+        {
+          "fn": "render",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 1.538
+        },
+        {
+          "fn": "setQuad",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 1.534
+        },
+        {
+          "fn": "batchTexture",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 1.529
+        }
+      ],
+      "errors": []
+    },
+    {
+      "name": "phone-dense",
+      "dense": true,
+      "phone": true,
+      "frames": 60,
+      "measurement": {
+        "active": false,
+        "draws": 420,
+        "triangles": 1670520,
+        "bufferCalls": 240,
+        "bufferBytes": 140323680,
+        "textureUploads": 0,
+        "applyITRS": 62880,
+        "multiply": 65160,
+        "multiplyWithOffset": 0,
+        "batchFillPath": 1200,
+        "updateText": 0,
+        "displayObjects": 1050,
+        "textureKeys": 112,
+        "textCanvases": 80,
+        "pipelineBufferBytes": 3778872,
+        "stage": "Factory Underground"
+      },
+      "cpuMs": {
+        "median": 8.200000047683716,
+        "p95": 10
+      },
+      "frameMs": {
+        "median": 16.799999952316284,
+        "p95": 18.09999990463257
+      },
+      "heap": {
+        "usedSize": 10597772,
+        "totalSize": 11538432,
+        "embedderHeapUsedSize": 8595752,
+        "backingStorageSize": 12143713
+      },
+      "gpu": {
+        "name": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4080 SUPER (0x00002702) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "canvas": [
+          390,
+          844
+        ]
+      },
+      "top": [
+        {
+          "fn": "(program)",
+          "file": "",
+          "selfMs": 1026.059
+        },
+        {
+          "fn": "(idle)",
+          "file": "",
+          "selfMs": 682.916
+        },
+        {
+          "fn": "FillPathWebGL",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 142.913
+        },
+        {
+          "fn": "batchLine",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 74.635
+        },
+        {
+          "fn": "RectangleWebGLRenderer",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 54.885
+        },
+        {
+          "fn": "batchQuad",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 51.421
+        },
+        {
+          "fn": "bufferData",
+          "file": "",
+          "selfMs": 38.632
+        },
+        {
+          "fn": "StrokePathWebGL",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 33.246
+        },
+        {
+          "fn": "GetCalcMatrix",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 23.827
+        },
+        {
+          "fn": "bufferSubData",
+          "file": "",
+          "selfMs": 23.684
+        },
+        {
+          "fn": "(garbage collector)",
+          "file": "",
+          "selfMs": 19.64
+        },
+        {
+          "fn": "TextWebGLRenderer",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 17.501
+        },
+        {
+          "fn": "batchQuad",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 15.447
+        },
+        {
+          "fn": "render",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 15.07
+        },
+        {
+          "fn": "StrokePathWebGL",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 14.938
+        },
+        {
+          "fn": "GraphicsWebGLRenderer",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 12.489
+        }
+      ],
+      "errors": []
+    },
+    {
+      "name": "desktop-combat",
+      "combat": true,
+      "frames": 60,
+      "measurement": {
+        "active": false,
+        "draws": 540,
+        "triangles": 2136262,
+        "bufferCalls": 420,
+        "bufferBytes": 179446008,
+        "textureUploads": 2,
+        "applyITRS": 52031,
+        "multiply": 55751,
+        "multiplyWithOffset": 0,
+        "batchFillPath": 1560,
+        "updateText": 1,
+        "displayObjects": 868,
+        "textureKeys": 92,
+        "textCanvases": 60,
+        "pipelineBufferBytes": 3778872,
+        "stage": "Emerald Killbox"
+      },
+      "cpuMs": {
+        "median": 1.7000000476837158,
+        "p95": 2.1999999284744263
+      },
+      "frameMs": {
+        "median": 16.799999952316284,
+        "p95": 17.600000023841858
+      },
+      "heap": {
+        "usedSize": 10812992,
+        "totalSize": 11800576,
+        "embedderHeapUsedSize": 4277520,
+        "backingStorageSize": 12143566
+      },
+      "gpu": {
+        "name": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4080 SUPER (0x00002702) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "canvas": [
+          1192,
+          670
+        ]
+      },
+      "top": [
+        {
+          "fn": "(idle)",
+          "file": "",
+          "selfMs": 1319.679
+        },
+        {
+          "fn": "(program)",
+          "file": "",
+          "selfMs": 198.401
+        },
+        {
+          "fn": "FillPathWebGL",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 25.869
+        },
+        {
+          "fn": "bufferSubData",
+          "file": "",
+          "selfMs": 16.866
+        },
+        {
+          "fn": "RectangleWebGLRenderer",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 11.947
+        },
+        {
+          "fn": "batchLine",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 10.167
+        },
+        {
+          "fn": "batchLine",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 7.814
+        },
+        {
+          "fn": "StrokePathWebGL",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 6.579
+        },
+        {
+          "fn": "render",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 6.216
+        },
+        {
+          "fn": "(garbage collector)",
+          "file": "",
+          "selfMs": 6.183
+        },
+        {
+          "fn": "batchQuad",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 5.968
+        },
+        {
+          "fn": "bufferData",
+          "file": "",
+          "selfMs": 4.924
+        },
+        {
+          "fn": "render",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 4.733
+        },
+        {
+          "fn": "FillPathWebGL",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 3.216
+        },
+        {
+          "fn": "StrokePathWebGL",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 3.041
+        },
+        {
+          "fn": "earcutLinked",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 3.031
+        }
+      ],
+      "errors": []
+    },
+    {
+      "name": "phone-combat",
+      "combat": true,
+      "phone": true,
+      "frames": 60,
+      "measurement": {
+        "active": false,
+        "draws": 540,
+        "triangles": 2136262,
+        "bufferCalls": 420,
+        "bufferBytes": 179446008,
+        "textureUploads": 2,
+        "applyITRS": 52031,
+        "multiply": 55751,
+        "multiplyWithOffset": 0,
+        "batchFillPath": 1560,
+        "updateText": 1,
+        "displayObjects": 868,
+        "textureKeys": 92,
+        "textCanvases": 60,
+        "pipelineBufferBytes": 3778872,
+        "stage": "Emerald Killbox"
+      },
+      "cpuMs": {
+        "median": 12.900000095367432,
+        "p95": 17.700000047683716
+      },
+      "frameMs": {
+        "median": 16.799999952316284,
+        "p95": 20.399999976158142
+      },
+      "heap": {
+        "usedSize": 10836248,
+        "totalSize": 12062720,
+        "embedderHeapUsedSize": 4005912,
+        "backingStorageSize": 12143566
+      },
+      "gpu": {
+        "name": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4080 SUPER (0x00002702) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "canvas": [
+          390,
+          844
+        ]
+      },
+      "top": [
+        {
+          "fn": "(program)",
+          "file": "",
+          "selfMs": 1399.3
+        },
+        {
+          "fn": "(idle)",
+          "file": "",
+          "selfMs": 224.6
+        },
+        {
+          "fn": "FillPathWebGL",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 165.538
+        },
+        {
+          "fn": "batchQuad",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 119.453
+        },
+        {
+          "fn": "batchLine",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 108.776
+        },
+        {
+          "fn": "RectangleWebGLRenderer",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 58.551
+        },
+        {
+          "fn": "StrokePathWebGL",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 49.824
+        },
+        {
+          "fn": "render",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 46.221
+        },
+        {
+          "fn": "bufferSubData",
+          "file": "",
+          "selfMs": 38.158
+        },
+        {
+          "fn": "bufferData",
+          "file": "",
+          "selfMs": 28.321
+        },
+        {
+          "fn": "bufferData",
+          "file": "",
+          "selfMs": 26.365
+        },
+        {
+          "fn": "(garbage collector)",
+          "file": "",
+          "selfMs": 21.974
+        },
+        {
+          "fn": "render",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 21.351
+        },
+        {
+          "fn": "TextWebGLRenderer",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 16.492
+        },
+        {
+          "fn": "GetCalcMatrix",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 16.349
+        },
+        {
+          "fn": "ArcWebGLRenderer",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 15.809
+        }
+      ],
+      "errors": []
+    },
+    {
+      "name": "desktop-effects",
+      "effects": true,
+      "frames": 60,
+      "measurement": {
+        "active": false,
+        "draws": 690,
+        "triangles": 2136360,
+        "bufferCalls": 420,
+        "bufferBytes": 179454240,
+        "textureUploads": 240,
+        "applyITRS": 54900,
+        "multiply": 57180,
+        "multiplyWithOffset": 0,
+        "batchFillPath": 1200,
+        "updateText": 120,
+        "displayObjects": 907,
+        "textureKeys": 131,
+        "textCanvases": 99,
+        "pipelineBufferBytes": 3778872,
+        "stage": "Emerald Killbox"
+      },
+      "cpuMs": {
+        "median": 1.399999976158142,
+        "p95": 2.1999999284744263
+      },
+      "frameMs": {
+        "median": 16.700000047683716,
+        "p95": 18
+      },
+      "heap": {
+        "usedSize": 10436208,
+        "totalSize": 11014144,
+        "embedderHeapUsedSize": 5951040,
+        "backingStorageSize": 12143767
+      },
+      "gpu": {
+        "name": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4080 SUPER (0x00002702) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "canvas": [
+          1192,
+          670
+        ]
+      },
+      "top": [
+        {
+          "fn": "(idle)",
+          "file": "",
+          "selfMs": 1347.642
+        },
+        {
+          "fn": "(program)",
+          "file": "",
+          "selfMs": 223.999
+        },
+        {
+          "fn": "FillPathWebGL",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 12.696
+        },
+        {
+          "fn": "batchLine",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 10.546
+        },
+        {
+          "fn": "batchQuad",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 10.043
+        },
+        {
+          "fn": "TextWebGLRenderer",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 6.049
+        },
+        {
+          "fn": "RectangleWebGLRenderer",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 5.986
+        },
+        {
+          "fn": "(garbage collector)",
+          "file": "",
+          "selfMs": 5.867
+        },
+        {
+          "fn": "StrokePathWebGL",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 5.566
+        },
+        {
+          "fn": "bufferSubData",
+          "file": "",
+          "selfMs": 4.694
+        },
+        {
+          "fn": "bufferSubData",
+          "file": "",
+          "selfMs": 4.61
+        },
+        {
+          "fn": "bindTexture",
+          "file": "",
+          "selfMs": 3.041
+        },
+        {
+          "fn": "render",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 2.901
+        },
+        {
+          "fn": "GetCalcMatrix",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 2.549
+        },
+        {
+          "fn": "add",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 1.827
+        },
+        {
+          "fn": "render",
+          "file": "performance-fixture.ts",
+          "selfMs": 1.649
+        }
+      ],
+      "errors": []
+    },
+    {
+      "name": "phone-effects",
+      "effects": true,
+      "phone": true,
+      "frames": 60,
+      "measurement": {
+        "active": false,
+        "draws": 690,
+        "triangles": 2136360,
+        "bufferCalls": 420,
+        "bufferBytes": 179454240,
+        "textureUploads": 240,
+        "applyITRS": 54900,
+        "multiply": 57180,
+        "multiplyWithOffset": 0,
+        "batchFillPath": 1200,
+        "updateText": 120,
+        "displayObjects": 907,
+        "textureKeys": 131,
+        "textCanvases": 99,
+        "pipelineBufferBytes": 3778872,
+        "stage": "Emerald Killbox"
+      },
+      "cpuMs": {
+        "median": 11.899999976158142,
+        "p95": 22.700000047683716
+      },
+      "frameMs": {
+        "median": 16.399999976158142,
+        "p95": 24.100000023841858
+      },
+      "heap": {
+        "usedSize": 10455976,
+        "totalSize": 11800576,
+        "embedderHeapUsedSize": 5692592,
+        "backingStorageSize": 12143767
+      },
+      "gpu": {
+        "name": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4080 SUPER (0x00002702) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "canvas": [
+          390,
+          844
+        ]
+      },
+      "top": [
+        {
+          "fn": "(program)",
+          "file": "",
+          "selfMs": 1123.098
+        },
+        {
+          "fn": "(idle)",
+          "file": "",
+          "selfMs": 207.488
+        },
+        {
+          "fn": "FillPathWebGL",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 117.203
+        },
+        {
+          "fn": "batchQuad",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 116.148
+        },
+        {
+          "fn": "batchLine",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 111.714
+        },
+        {
+          "fn": "RectangleWebGLRenderer",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 42.321
+        },
+        {
+          "fn": "bufferSubData",
+          "file": "",
+          "selfMs": 39.106
+        },
+        {
+          "fn": "bufferData",
+          "file": "",
+          "selfMs": 35.152
+        },
+        {
+          "fn": "(garbage collector)",
+          "file": "",
+          "selfMs": 33.036
+        },
+        {
+          "fn": "StrokePathWebGL",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 32.533
+        },
+        {
+          "fn": "bufferData",
+          "file": "",
+          "selfMs": 32.113
+        },
+        {
+          "fn": "texImage2D",
+          "file": "",
+          "selfMs": 29.272
+        },
+        {
+          "fn": "render",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 24.316
+        },
+        {
+          "fn": "save",
+          "file": "",
+          "selfMs": 19.669
+        },
+        {
+          "fn": "render",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 18.555
+        },
+        {
+          "fn": "batchQuad",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 17.933
+        }
+      ],
+      "errors": []
+    }
+  ],
+  "after": [
+    {
+      "name": "desktop-entry",
+      "frames": 60,
+      "measurement": {
+        "active": false,
+        "draws": 180,
+        "triangles": 1116060,
+        "bufferCalls": 180,
+        "bufferBytes": 93749040,
+        "textureUploads": 0,
+        "applyITRS": 20700,
+        "multiply": 22980,
+        "multiplyWithOffset": 0,
+        "batchFillPath": 1200,
+        "updateText": 0,
+        "displayObjects": 851,
+        "textureKeys": 91,
+        "textCanvases": 59,
+        "pipelineBufferBytes": 3778872,
+        "stage": "Emerald Killbox"
+      },
+      "cpuMs": {
+        "median": 1.600000023841858,
+        "p95": 1.899999976158142
+      },
+      "frameMs": {
+        "median": 16.800000071525574,
+        "p95": 17.799999952316284
+      },
+      "heap": {
+        "usedSize": 10064832,
+        "totalSize": 10752000,
+        "embedderHeapUsedSize": 4211416,
+        "backingStorageSize": 12156618
+      },
+      "gpu": {
+        "name": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4080 SUPER (0x00002702) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "canvas": [
+          1192,
+          670
+        ]
+      },
+      "top": [
+        {
+          "fn": "(idle)",
+          "file": "",
+          "selfMs": 1340.49
+        },
+        {
+          "fn": "(program)",
+          "file": "",
+          "selfMs": 314.984
+        },
+        {
+          "fn": "FillPathWebGL",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 27.515
+        },
+        {
+          "fn": "batchLine",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 12.853
+        },
+        {
+          "fn": "(garbage collector)",
+          "file": "",
+          "selfMs": 11.969
+        },
+        {
+          "fn": "",
+          "file": "visibleScene.ts",
+          "selfMs": 10.033
+        },
+        {
+          "fn": "bufferSubData",
+          "file": "",
+          "selfMs": 6.093
+        },
+        {
+          "fn": "manager.getVisibleChildren",
+          "file": "visibleScene.ts",
+          "selfMs": 5.135
+        },
+        {
+          "fn": "bufferData",
+          "file": "",
+          "selfMs": 4.704
+        },
+        {
+          "fn": "requestAnimationFrame",
+          "file": "",
+          "selfMs": 4.125
+        },
+        {
+          "fn": "batchQuad",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 4.083
+        },
+        {
+          "fn": "render",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 3.841
+        },
+        {
+          "fn": "GetCalcMatrix",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 3.124
+        },
+        {
+          "fn": "StrokePathWebGL",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 3.117
+        },
+        {
+          "fn": "batchSprite",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 3.069
+        },
+        {
+          "fn": "batchQuad",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 1.722
+        }
+      ],
+      "errors": []
+    },
+    {
+      "name": "desktop-dense",
+      "dense": true,
+      "frames": 60,
+      "measurement": {
+        "active": false,
+        "draws": 120,
+        "triangles": 713160,
+        "bufferCalls": 120,
+        "bufferBytes": 59905440,
+        "textureUploads": 0,
+        "applyITRS": 18720,
+        "multiply": 21000,
+        "multiplyWithOffset": 0,
+        "batchFillPath": 1200,
+        "updateText": 0,
+        "displayObjects": 1050,
+        "textureKeys": 112,
+        "textCanvases": 80,
+        "pipelineBufferBytes": 3778872,
+        "stage": "Factory Underground"
+      },
+      "cpuMs": {
+        "median": 1.2000000476837158,
+        "p95": 1.5
+      },
+      "frameMs": {
+        "median": 16.899999976158142,
+        "p95": 17.800000071525574
+      },
+      "heap": {
+        "usedSize": 10888436,
+        "totalSize": 11800576,
+        "embedderHeapUsedSize": 8865216,
+        "backingStorageSize": 12156772
+      },
+      "gpu": {
+        "name": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4080 SUPER (0x00002702) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "canvas": [
+          1192,
+          670
+        ]
+      },
+      "top": [
+        {
+          "fn": "(idle)",
+          "file": "",
+          "selfMs": 1386.084
+        },
+        {
+          "fn": "(program)",
+          "file": "",
+          "selfMs": 323.378
+        },
+        {
+          "fn": "(garbage collector)",
+          "file": "",
+          "selfMs": 10.761
+        },
+        {
+          "fn": "bufferData",
+          "file": "",
+          "selfMs": 5.971
+        },
+        {
+          "fn": "manager.getVisibleChildren",
+          "file": "visibleScene.ts",
+          "selfMs": 4.607
+        },
+        {
+          "fn": "",
+          "file": "visibleScene.ts",
+          "selfMs": 4.572
+        },
+        {
+          "fn": "FillPathWebGL",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 2.633
+        },
+        {
+          "fn": "batchLine",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 1.639
+        },
+        {
+          "fn": "batchQuad",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 1.574
+        },
+        {
+          "fn": "bufferSubData",
+          "file": "",
+          "selfMs": 1.565
+        },
+        {
+          "fn": "",
+          "file": "",
+          "selfMs": 1.559
+        },
+        {
+          "fn": "TextWebGLRenderer",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 1.558
+        },
+        {
+          "fn": "render",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 1.552
+        },
+        {
+          "fn": "activeTexture",
+          "file": "",
+          "selfMs": 1.55
+        },
+        {
+          "fn": "isError",
+          "file": "",
+          "selfMs": 1.528
+        },
+        {
+          "fn": "batchQuad",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 1.521
+        }
+      ],
+      "errors": []
+    },
+    {
+      "name": "phone-dense",
+      "dense": true,
+      "phone": true,
+      "frames": 60,
+      "measurement": {
+        "active": false,
+        "draws": 60,
+        "triangles": 437640,
+        "bufferCalls": 60,
+        "bufferBytes": 36761760,
+        "textureUploads": 0,
+        "applyITRS": 7740,
+        "multiply": 10020,
+        "multiplyWithOffset": 0,
+        "batchFillPath": 1200,
+        "updateText": 0,
+        "displayObjects": 1050,
+        "textureKeys": 112,
+        "textCanvases": 80,
+        "pipelineBufferBytes": 3778872,
+        "stage": "Factory Underground"
+      },
+      "cpuMs": {
+        "median": 5.299999952316284,
+        "p95": 6.300000071525574
+      },
+      "frameMs": {
+        "median": 16.800000071525574,
+        "p95": 18.100000023841858
+      },
+      "heap": {
+        "usedSize": 10906884,
+        "totalSize": 11800576,
+        "embedderHeapUsedSize": 8602176,
+        "backingStorageSize": 12156772
+      },
+      "gpu": {
+        "name": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4080 SUPER (0x00002702) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "canvas": [
+          390,
+          844
+        ]
+      },
+      "top": [
+        {
+          "fn": "(program)",
+          "file": "",
+          "selfMs": 1956.733
+        },
+        {
+          "fn": "(idle)",
+          "file": "",
+          "selfMs": 959.323
+        },
+        {
+          "fn": "",
+          "file": "visibleScene.ts",
+          "selfMs": 135.48
+        },
+        {
+          "fn": "manager.getVisibleChildren",
+          "file": "visibleScene.ts",
+          "selfMs": 46.018
+        },
+        {
+          "fn": "bufferSubData",
+          "file": "",
+          "selfMs": 39.376
+        },
+        {
+          "fn": "FillPathWebGL",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 31.987
+        },
+        {
+          "fn": "batchQuad",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 26.306
+        },
+        {
+          "fn": "(garbage collector)",
+          "file": "",
+          "selfMs": 22.272
+        },
+        {
+          "fn": "batchLine",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 16.588
+        },
+        {
+          "fn": "earcut",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 10.259
+        },
+        {
+          "fn": "StrokePathWebGL",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 9.129
+        },
+        {
+          "fn": "GraphicsWebGLRenderer",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 7.846
+        },
+        {
+          "fn": "earcutLinked",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 6.14
+        },
+        {
+          "fn": "",
+          "file": "",
+          "selfMs": 4.696
+        },
+        {
+          "fn": "render",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 4.643
+        },
+        {
+          "fn": "render",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 4.588
+        }
+      ],
+      "errors": []
+    },
+    {
+      "name": "desktop-combat",
+      "combat": true,
+      "frames": 60,
+      "measurement": {
+        "active": false,
+        "draws": 283,
+        "triangles": 999346,
+        "bufferCalls": 258,
+        "bufferBytes": 83945064,
+        "textureUploads": 1,
+        "applyITRS": 22169,
+        "multiply": 25889,
+        "multiplyWithOffset": 0,
+        "batchFillPath": 1560,
+        "updateText": 1,
+        "displayObjects": 869,
+        "textureKeys": 92,
+        "textCanvases": 60,
+        "pipelineBufferBytes": 3778872,
+        "stage": "Emerald Killbox"
+      },
+      "cpuMs": {
+        "median": 1.7999999523162842,
+        "p95": 2.5999999046325684
+      },
+      "frameMs": {
+        "median": 16.799999952316284,
+        "p95": 17.899999976158142
+      },
+      "heap": {
+        "usedSize": 11066932,
+        "totalSize": 11538432,
+        "embedderHeapUsedSize": 4284112,
+        "backingStorageSize": 12156671
+      },
+      "gpu": {
+        "name": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4080 SUPER (0x00002702) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "canvas": [
+          1192,
+          670
+        ]
+      },
+      "top": [
+        {
+          "fn": "(idle)",
+          "file": "",
+          "selfMs": 1332.532
+        },
+        {
+          "fn": "(program)",
+          "file": "",
+          "selfMs": 325.13
+        },
+        {
+          "fn": "batchLine",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 16.62
+        },
+        {
+          "fn": "batchQuad",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 11.121
+        },
+        {
+          "fn": "(garbage collector)",
+          "file": "",
+          "selfMs": 10.288
+        },
+        {
+          "fn": "",
+          "file": "visibleScene.ts",
+          "selfMs": 9.436
+        },
+        {
+          "fn": "FillPathWebGL",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 8.015
+        },
+        {
+          "fn": "manager.getVisibleChildren",
+          "file": "visibleScene.ts",
+          "selfMs": 5.225
+        },
+        {
+          "fn": "bufferData",
+          "file": "",
+          "selfMs": 4.842
+        },
+        {
+          "fn": "ArcWebGLRenderer",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 4.383
+        },
+        {
+          "fn": "GetCalcMatrix",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 3.872
+        },
+        {
+          "fn": "TextWebGLRenderer",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 3.086
+        },
+        {
+          "fn": "render",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 3.062
+        },
+        {
+          "fn": "RectangleWebGLRenderer",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 3.051
+        },
+        {
+          "fn": "",
+          "file": "",
+          "selfMs": 2.875
+        },
+        {
+          "fn": "batchLine",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 2.864
+        }
+      ],
+      "errors": []
+    },
+    {
+      "name": "phone-combat",
+      "combat": true,
+      "phone": true,
+      "frames": 60,
+      "measurement": {
+        "active": false,
+        "draws": 248,
+        "triangles": 671538,
+        "bufferCalls": 236,
+        "bufferBytes": 56409192,
+        "textureUploads": 1,
+        "applyITRS": 13515,
+        "multiply": 17235,
+        "multiplyWithOffset": 0,
+        "batchFillPath": 1560,
+        "updateText": 1,
+        "displayObjects": 869,
+        "textureKeys": 92,
+        "textCanvases": 60,
+        "pipelineBufferBytes": 3778872,
+        "stage": "Emerald Killbox"
+      },
+      "cpuMs": {
+        "median": 6.799999952316284,
+        "p95": 11.100000023841858
+      },
+      "frameMs": {
+        "median": 16.799999952316284,
+        "p95": 18.40000009536743
+      },
+      "heap": {
+        "usedSize": 11094744,
+        "totalSize": 12062720,
+        "embedderHeapUsedSize": 4012456,
+        "backingStorageSize": 12156671
+      },
+      "gpu": {
+        "name": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4080 SUPER (0x00002702) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "canvas": [
+          390,
+          844
+        ]
+      },
+      "top": [
+        {
+          "fn": "(program)",
+          "file": "",
+          "selfMs": 2052.269
+        },
+        {
+          "fn": "(idle)",
+          "file": "",
+          "selfMs": 788.655
+        },
+        {
+          "fn": "",
+          "file": "visibleScene.ts",
+          "selfMs": 83.342
+        },
+        {
+          "fn": "manager.getVisibleChildren",
+          "file": "visibleScene.ts",
+          "selfMs": 40.151
+        },
+        {
+          "fn": "FillPathWebGL",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 34.736
+        },
+        {
+          "fn": "batchLine",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 26.364
+        },
+        {
+          "fn": "batchQuad",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 20.064
+        },
+        {
+          "fn": "StrokePathWebGL",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 17.628
+        },
+        {
+          "fn": "render",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 14.106
+        },
+        {
+          "fn": "getBounds",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 13.905
+        },
+        {
+          "fn": "(garbage collector)",
+          "file": "",
+          "selfMs": 12.817
+        },
+        {
+          "fn": "get",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 12.294
+        },
+        {
+          "fn": "bufferData",
+          "file": "",
+          "selfMs": 12.001
+        },
+        {
+          "fn": "earcutLinked",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 11.819
+        },
+        {
+          "fn": "sortByDepth",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 11.115
+        },
+        {
+          "fn": "bufferSubData",
+          "file": "",
+          "selfMs": 8.717
+        }
+      ],
+      "errors": []
+    },
+    {
+      "name": "desktop-effects",
+      "effects": true,
+      "frames": 60,
+      "measurement": {
+        "active": false,
+        "draws": 450,
+        "triangles": 1123980,
+        "bufferCalls": 300,
+        "bufferBytes": 94414320,
+        "textureUploads": 0,
+        "applyITRS": 24660,
+        "multiply": 26940,
+        "multiplyWithOffset": 0,
+        "batchFillPath": 1200,
+        "updateText": 0,
+        "displayObjects": 923,
+        "textureKeys": 139,
+        "textCanvases": 107,
+        "pipelineBufferBytes": 3778872,
+        "stage": "Emerald Killbox"
+      },
+      "cpuMs": {
+        "median": 1.899999976158142,
+        "p95": 2.299999952316284
+      },
+      "frameMs": {
+        "median": 16.899999976158142,
+        "p95": 17.699999928474426
+      },
+      "heap": {
+        "usedSize": 10610892,
+        "totalSize": 11538432,
+        "embedderHeapUsedSize": 5953152,
+        "backingStorageSize": 12156826
+      },
+      "gpu": {
+        "name": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4080 SUPER (0x00002702) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "canvas": [
+          1192,
+          670
+        ]
+      },
+      "top": [
+        {
+          "fn": "(idle)",
+          "file": "",
+          "selfMs": 1325.879
+        },
+        {
+          "fn": "(program)",
+          "file": "",
+          "selfMs": 253.541
+        },
+        {
+          "fn": "FillPathWebGL",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 33.377
+        },
+        {
+          "fn": "batchLine",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 20.056
+        },
+        {
+          "fn": "bufferData",
+          "file": "",
+          "selfMs": 16.081
+        },
+        {
+          "fn": "batchQuad",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 13.839
+        },
+        {
+          "fn": "(garbage collector)",
+          "file": "",
+          "selfMs": 10.385
+        },
+        {
+          "fn": "StrokePathWebGL",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 6.063
+        },
+        {
+          "fn": "bufferData",
+          "file": "",
+          "selfMs": 4.92
+        },
+        {
+          "fn": "",
+          "file": "visibleScene.ts",
+          "selfMs": 4.132
+        },
+        {
+          "fn": "batchQuad",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 3.084
+        },
+        {
+          "fn": "FillPathWebGL",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 3.036
+        },
+        {
+          "fn": "batchQuad",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 1.73
+        },
+        {
+          "fn": "batchQuad",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 1.619
+        },
+        {
+          "fn": "applyITRS",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 1.585
+        },
+        {
+          "fn": "TextWebGLRenderer",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 1.568
+        }
+      ],
+      "errors": []
+    },
+    {
+      "name": "phone-effects",
+      "effects": true,
+      "phone": true,
+      "frames": 60,
+      "measurement": {
+        "active": false,
+        "draws": 330,
+        "triangles": 308520,
+        "bufferCalls": 180,
+        "bufferBytes": 25915680,
+        "textureUploads": 0,
+        "applyITRS": 7740,
+        "multiply": 10020,
+        "multiplyWithOffset": 0,
+        "batchFillPath": 1200,
+        "updateText": 0,
+        "displayObjects": 923,
+        "textureKeys": 139,
+        "textCanvases": 107,
+        "pipelineBufferBytes": 3778872,
+        "stage": "Emerald Killbox"
+      },
+      "cpuMs": {
+        "median": 5.100000023841858,
+        "p95": 6.600000023841858
+      },
+      "frameMs": {
+        "median": 16.799999952316284,
+        "p95": 17.600000023841858
+      },
+      "heap": {
+        "usedSize": 10613856,
+        "totalSize": 11538432,
+        "embedderHeapUsedSize": 5686448,
+        "backingStorageSize": 12156826
+      },
+      "gpu": {
+        "name": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4080 SUPER (0x00002702) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "canvas": [
+          390,
+          844
+        ]
+      },
+      "top": [
+        {
+          "fn": "(program)",
+          "file": "",
+          "selfMs": 1434.622
+        },
+        {
+          "fn": "(idle)",
+          "file": "",
+          "selfMs": 973.363
+        },
+        {
+          "fn": "",
+          "file": "visibleScene.ts",
+          "selfMs": 122.215
+        },
+        {
+          "fn": "manager.getVisibleChildren",
+          "file": "visibleScene.ts",
+          "selfMs": 54.591
+        },
+        {
+          "fn": "FillPathWebGL",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 31.245
+        },
+        {
+          "fn": "batchLine",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 13.842
+        },
+        {
+          "fn": "StrokePathWebGL",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 12.284
+        },
+        {
+          "fn": "batchQuad",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 12.17
+        },
+        {
+          "fn": "bufferSubData",
+          "file": "",
+          "selfMs": 12.151
+        },
+        {
+          "fn": "earcutLinked",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 9.263
+        },
+        {
+          "fn": "",
+          "file": "",
+          "selfMs": 8.902
+        },
+        {
+          "fn": "requestAnimationFrame",
+          "file": "",
+          "selfMs": 7.929
+        },
+        {
+          "fn": "TextWebGLRenderer",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 7.796
+        },
+        {
+          "fn": "batchFillPath",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 7.765
+        },
+        {
+          "fn": "getBounds",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 7.702
+        },
+        {
+          "fn": "sortByDepth",
+          "file": "phaser.js?v=4af78446",
+          "selfMs": 7.299
+        }
+      ],
+      "errors": []
+    }
+  ],
+  "pairedTimings": [
+    {
+      "phone": false,
+      "dense": true,
+      "blocks": [
+        [
+          1.1249999940395354,
+          0.645000034570694,
+          0.9550000011920929
+        ],
+        [
+          1.0100000143051147,
+          0.6250000119209289,
+          1.005000013113022
+        ],
+        [
+          1.005000001192093,
+          0.6799999892711639,
+          0.9800000011920929
+        ],
+        [
+          0.9749999940395355,
+          0.6399999856948853,
+          0.9999999940395355
+        ],
+        [
+          0.9949999988079071,
+          0.6149999976158143,
+          1
+        ],
+        [
+          0.9850000083446503,
+          0.6149999856948852,
+          1.1199999809265138
+        ],
+        [
+          0.9849999964237213,
+          0.7299999833106995,
+          1
+        ],
+        [
+          1.0449999809265136,
+          0.6100000143051147,
+          1.050000011920929
+        ],
+        [
+          0.9949999988079071,
+          0.6349999964237213,
+          1.0050000071525573
+        ],
+        [
+          1.015000009536743,
+          0.6350000083446503,
+          0.9200000047683716
+        ],
+        [
+          1.0100000143051147,
+          0.6,
+          1.0350000023841859
+        ],
+        [
+          1.0149999797344207,
+          1.169999998807907,
+          0.9600000023841858
+        ]
+      ],
+      "optimizedRatio": 0.625615765889964,
+      "controlRatio": 1.0050251268322445
+    },
+    {
+      "phone": false,
+      "effects": true,
+      "blocks": [
+        [
+          1.494999998807907,
+          0.9300000011920929,
+          1.4799999833106994
+        ],
+        [
+          1.3999999940395356,
+          0.95,
+          1.4700000047683717
+        ],
+        [
+          1.4,
+          0.9049999952316284,
+          1.4000000059604645
+        ],
+        [
+          1.4150000035762786,
+          0.8449999749660492,
+          1.3649999976158143
+        ],
+        [
+          1.3349999964237214,
+          0.879999989271164,
+          1.2699999928474426
+        ],
+        [
+          1.4149999856948852,
+          0.9199999988079071,
+          1.4100000143051148
+        ],
+        [
+          1.325,
+          0.8649999916553497,
+          1.3350000143051148
+        ],
+        [
+          1.4149999976158143,
+          0.8149999856948853,
+          1.3149999856948853
+        ],
+        [
+          1.350000011920929,
+          0.8649999916553497,
+          1.380000001192093
+        ],
+        [
+          1.305000013113022,
+          0.804999977350235,
+          1.2900000214576721
+        ],
+        [
+          1.4049999833106994,
+          0.8199999749660491,
+          1.354999989271164
+        ],
+        [
+          1.4199999690055847,
+          0.85,
+          1.375000035762787
+        ]
+      ],
+      "optimizedRatio": 0.6407407289015741,
+      "controlRatio": 0.9899665448099207
+    },
+    {
+      "phone": true,
+      "dense": true,
+      "blocks": [
+        [
+          4.819999992847443,
+          2.294999986886978,
+          5.534999984502792
+        ],
+        [
+          4.485000008344651,
+          2.240000009536743,
+          5.004999995231628
+        ],
+        [
+          5.0250000059604645,
+          2.230000007152557,
+          5.160000014305115
+        ],
+        [
+          4.460000014305114,
+          2.194999998807907,
+          5.81000000834465
+        ],
+        [
+          4.544999986886978,
+          2.334999996423721,
+          4.675000005960465
+        ],
+        [
+          4.720000010728836,
+          2.084999996423721,
+          5.420000010728836
+        ],
+        [
+          4.489999997615814,
+          2.2849999904632567,
+          5.669999992847442
+        ],
+        [
+          5.024999994039535,
+          2.3149999916553496,
+          4.8749999642372135
+        ],
+        [
+          8.185000014305114,
+          2.375000011920929,
+          6.924999982118607
+        ],
+        [
+          4.865000003576279,
+          2.8500000059604647,
+          5.324999994039535
+        ],
+        [
+          6.429999995231628,
+          2.4850000023841856,
+          5.315000003576278
+        ],
+        [
+          5.8050000131130215,
+          3.844999980926514,
+          4.944999998807907
+        ]
+      ],
+      "optimizedRatio": 0.4921524645218856,
+      "controlRatio": 1.0945529270555208
+    },
+    {
+      "phone": true,
+      "effects": true,
+      "blocks": [
+        [
+          13.370000010728836,
+          4.580000007152558,
+          14.184999978542328
+        ],
+        [
+          13.075000005960465,
+          4.634999990463257,
+          13.679999989271163
+        ],
+        [
+          14.630000007152557,
+          4.504999995231628,
+          12.705000001192094
+        ],
+        [
+          15.675,
+          4.834999990463257,
+          13.469999980926513
+        ],
+        [
+          9.030000007152557,
+          4.044999998807907,
+          7.439999985694885
+        ],
+        [
+          6.549999988079071,
+          2.089999997615814,
+          7.455000013113022
+        ],
+        [
+          7.455000013113022,
+          2.289999985694885,
+          6.280000007152557
+        ],
+        [
+          7.045000010728836,
+          2.2149999916553496,
+          7.190000009536743
+        ],
+        [
+          6.529999989271164,
+          2.6300000071525576,
+          6.354999995231628
+        ],
+        [
+          6.874999982118607,
+          2.3099999964237212,
+          6.579999989271164
+        ],
+        [
+          6.520000010728836,
+          2.4500000059604643,
+          7.340000003576279
+        ],
+        [
+          7.509999996423721,
+          2.245000010728836,
+          6.4949999928474424
+        ]
+      ],
+      "optimizedRatio": 0.33600000035372646,
+      "controlRatio": 0.9732006134261774
+    }
+  ],
+  "checks": [
+    {
+      "phone": false,
+      "checkedViews": 34,
+      "stages": 9,
+      "maxPixelDelta": 4,
+      "textureCounts": [
+        139,
+        139,
+        139
+      ],
+      "poolLimit": 64,
+      "input": "passed",
+      "resize": "passed",
+      "errors": []
+    },
+    {
+      "phone": true,
+      "checkedViews": 34,
+      "stages": 9,
+      "maxPixelDelta": 4,
+      "textureCounts": [
+        139,
+        139,
+        139
+      ],
+      "poolLimit": 64,
+      "input": "passed",
+      "resize": "passed",
+      "errors": []
+    }
+  ],
+  "pixels": [
+    {
+      "name": "desktop-combat",
+      "changedOver24": 130,
+      "pixels": 798640,
+      "maxDelta": 199
+    },
+    {
+      "name": "desktop-dense",
+      "changedOver24": 0,
+      "pixels": 798640,
+      "maxDelta": 1
+    },
+    {
+      "name": "desktop-effects",
+      "changedOver24": 0,
+      "pixels": 798640,
+      "maxDelta": 1
+    },
+    {
+      "name": "desktop-entry",
+      "changedOver24": 0,
+      "pixels": 798640,
+      "maxDelta": 1
+    },
+    {
+      "name": "phone-combat",
+      "changedOver24": 114,
+      "pixels": 329160,
+      "maxDelta": 199
+    },
+    {
+      "name": "phone-dense",
+      "changedOver24": 0,
+      "pixels": 329160,
+      "maxDelta": 1
+    },
+    {
+      "name": "phone-effects",
+      "changedOver24": 0,
+      "pixels": 329160,
+      "maxDelta": 1
+    }
+  ],
+  "sameBuildVisualControl": [
+    {
+      "name": "desktop",
+      "changedOver24": 0,
+      "maxDelta": 0
+    },
+    {
+      "name": "phone",
+      "changedOver24": 0,
+      "maxDelta": 0
+    }
+  ]
+}
