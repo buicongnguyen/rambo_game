@@ -1,4 +1,6 @@
 import Phaser from 'phaser';
+import { cullSceneToCamera } from '../render/visibleScene';
+import { HitEffects } from '../render/HitEffects';
 import { CONTROL_SCHEMES } from '../core/ControlScheme';
 import { GameDirector } from '../core/GameDirector';
 import { VirtualGamepad, type GameAction } from '../core/VirtualGamepad';
@@ -473,6 +475,7 @@ export class BattleScene extends Phaser.Scene {
   private objectivePanel?: Phaser.GameObjects.Image;
   private visionGraphics?: Phaser.GameObjects.Graphics;
   private shadowSquadMode = false;
+  private hitEffects?: HitEffects;
 
   constructor(
     director: GameDirector,
@@ -498,6 +501,8 @@ export class BattleScene extends Phaser.Scene {
     this.loadedToken = data?.token ?? '';
     this.ensureEffectTextures();
     this.createAnimations();
+    cullSceneToCamera(this);
+    this.hitEffects = new HitEffects(this);
     this.attachDirector();
     this.scale.off(Phaser.Scale.Events.RESIZE, this.applyResponsiveCamera, this);
     this.scale.on(Phaser.Scale.Events.RESIZE, this.applyResponsiveCamera, this);
@@ -4862,44 +4867,7 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private createHitSpark(x: number, y: number, tint: number, label?: string): void {
-    const spark = this.add.image(x, y, 'blast-circle');
-    spark.setDepth(19);
-    spark.setTint(tint);
-    spark.setAlpha(0.58);
-    spark.setScale(0.11);
-    spark.setBlendMode(Phaser.BlendModes.ADD);
-
-    this.tweens.add({
-      targets: spark,
-      alpha: 0,
-      scale: 0.82,
-      duration: 180,
-      ease: 'Quad.easeOut',
-      onComplete: () => spark.destroy(),
-    });
-
-    if (!label) {
-      return;
-    }
-
-    const text = this.add.text(x, y - 18, label, {
-      fontFamily: 'Bahnschrift, Trebuchet MS, sans-serif',
-      fontSize: '12px',
-      color: '#fff2c4',
-      stroke: '#24170a',
-      strokeThickness: 3,
-    });
-    text.setOrigin(0.5);
-    text.setDepth(20);
-
-    this.tweens.add({
-      targets: text,
-      y: y - 38,
-      alpha: 0,
-      duration: 360,
-      ease: 'Quad.easeOut',
-      onComplete: () => text.destroy(),
-    });
+    this.hitEffects?.emit(x, y, tint, label);
   }
 
   private emitHud(phase: HudSnapshot['phase']): void {

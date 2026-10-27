@@ -56,7 +56,7 @@ const ui = new InterfaceController(
 );
 touchControls = new TouchControlsOverlay(touchControlsRoot, director, virtualGamepad);
 
-new Phaser.Game({
+const game = new Phaser.Game({
   type: Phaser.AUTO,
   parent: 'game-root',
   backgroundColor: '#0a0f0b',
@@ -84,3 +84,8 @@ new Phaser.Game({
     touchControls?.setHud(snapshot);
   }, virtualGamepad)],
 });
+
+// Local profiling access; removed by Vite from production builds.
+if (import.meta.env.DEV) {
+  Object.assign(window, { __ramboPerf: { game, director, virtualGamepad } });
+}
